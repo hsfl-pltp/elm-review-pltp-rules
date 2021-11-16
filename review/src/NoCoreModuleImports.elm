@@ -75,8 +75,8 @@ ruleErrors node name =
     [ Rule.error
         { message = "Import of core module found : " ++ name
         , details =
-            [ "The import of a core module is not necessary, because they are imported by default"
-            , "For a list of all default imports take a look at https://package.elm-lang.org/packages/elm/core/latest/"
+            [ "The import of a core module is not necessary, because they are imported by default."
+            , "For a list of all default imports take a look at https://package.elm-lang.org/packages/elm/core/latest/."
             ]
         }
         (Node.range node)

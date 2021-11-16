@@ -11,10 +11,11 @@ when inside the directory containing this file.
 
 -}
 
-import NoCoreImports
+import NoCoreModuleImports
 import Review.Rule exposing (Rule)
 
 
 config : List Rule
 config =
-    [ NoCoreImports.rule ]
+    [ NoCoreModuleImports.rule
+    ]
