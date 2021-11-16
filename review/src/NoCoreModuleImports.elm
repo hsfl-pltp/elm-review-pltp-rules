@@ -1,6 +1,6 @@
 module NoCoreModuleImports exposing (rule)
 
-{-|
+{-| Forbids the import of core modules, which are default imports.
 
 @docs rule
 
@@ -11,7 +11,7 @@ import Elm.Syntax.Node as Node exposing (Node)
 import Review.Rule as Rule exposing (Error, Rule)
 
 
-{-| Reports... REPLACEME
+{-| Reports the import of core modules
 
     config =
         [ NoCoreModuleImports.rule
@@ -20,29 +20,17 @@ import Review.Rule as Rule exposing (Error, Rule)
 
 ## Fail
 
-    a =
-        "REPLACEME example to replace"
+    import List exposing (map)
+
+    a = 
+        map (\e -> e + 1) [1,2,3]
 
 
 ## Success
 
     a =
-        "REPLACEME example to replace"
+        List.map (\e -> e + 1) [1,2,3]
 
-
-## When (not) to enable this rule
-
-This rule is useful when REPLACEME.
-This rule is not useful when REPLACEME.
-
-
-## Try it out
-
-You can try this rule out by running the following command:
-
-```bash
-elm-review --template undefined/example --rules NoCoreModuleImports
-```
 
 -}
 rule : Rule
