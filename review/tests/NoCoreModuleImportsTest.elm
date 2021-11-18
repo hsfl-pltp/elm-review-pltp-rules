@@ -10,11 +10,10 @@ all =
     describe "Test"
         [ test "should report an error when a core module is imported" <|
             \() ->
-                invalid
+                source
                     |> Review.Test.run rule
                     |> Review.Test.expectErrors
-                        [ Review.Test.error expectedError
-                        ]
+                        [ Review.Test.error expectedError ]
         ]
 
 
@@ -29,9 +28,10 @@ expectedError =
     }
 
 
-invalid : String
-invalid =
-    """module A exposing(..)
+source : String
+source =
+    """
+module A exposing(..)
 
 import List exposing (map)
 """
