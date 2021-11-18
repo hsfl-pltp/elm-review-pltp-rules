@@ -46,9 +46,16 @@ coreModules =
     [ "List" ]
 
 
-isCoreModule : String -> Bool
-isCoreModule name =
-    List.member name coreModules
+isCoreModule : List String -> String -> Bool
+isCoreModule list name =
+    case list of 
+        [] -> 
+            False
+        x :: xs -> 
+            if name == x then
+                True
+            else 
+                isCoreModule xs name
 
 
 moduleName : Import -> String
@@ -63,7 +70,7 @@ importVisitor node =
         name =
             moduleName (Node.value node)
     in
-    if isCoreModule name then
+    if isCoreModule coreModules name then
         ruleErrors node name
 
     else
