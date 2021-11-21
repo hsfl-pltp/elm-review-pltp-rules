@@ -22,15 +22,14 @@ import Review.Rule as Rule exposing (Error, Rule)
 
     import List exposing (map)
 
-    a = 
-        map (\e -> e + 1) [1,2,3]
+    a =
+        map (\e -> e + 1) [ 1, 2, 3 ]
 
 
 ## Success
 
     a =
-        List.map (\e -> e + 1) [1,2,3]
-
+        List.map (\e -> e + 1) [ 1, 2, 3 ]
 
 -}
 rule : Rule
@@ -43,18 +42,31 @@ rule =
 
 coreModules : List String
 coreModules =
-    [ "List" ]
+    [ "Basics"
+    , "List"
+    , "Maybe"
+    , "Result"
+    , "String"
+    , "Char"
+    , "Tuple"
+    , "Debug"
+    , "Platform"
+    , "Platform.Cmd"
+    , "Platform.Sub"
+    ]
 
 
 isCoreModule : List String -> String -> Bool
 isCoreModule list name =
-    case list of 
-        [] -> 
+    case list of
+        [] ->
             False
-        x :: xs -> 
+
+        x :: xs ->
             if name == x then
                 True
-            else 
+
+            else
                 isCoreModule xs name
 
 
