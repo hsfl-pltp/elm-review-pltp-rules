@@ -13,12 +13,13 @@ when inside the directory containing this file.
 
 import NoCoreModuleImports
 import OnlyQualifiedImports
+import UnnecessaryIf
 import Review.Rule exposing (Rule)
 
 
 config : List Rule
 config =
-    [ 
-        -- NoCoreModuleImports.rule
-    OnlyQualifiedImports.rule ["Html", "Svg"]
+    [ NoCoreModuleImports.rule
+    , OnlyQualifiedImports.rule [ "Html", "Svg" ]
+    , UnnecessaryIf.rule
     ]
