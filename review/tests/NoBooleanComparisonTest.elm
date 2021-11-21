@@ -17,7 +17,7 @@ all =
 
 testRule : String -> Test
 testRule expr =
-    test ("Should report an error when " ++ expr ++ " is found.")
+    test ("Should report an error when a expression like " ++ expr ++ " is found.")
         (\_ ->
             source expr
                 |> Review.Test.run rule
