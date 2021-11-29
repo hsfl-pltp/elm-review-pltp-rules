@@ -14,12 +14,18 @@ when inside the directory containing this file.
 import NoCoreModuleImports
 import OnlyQualifiedImports
 import UnnecessaryIf
+import NoMinimalUnderscorePattern
 import Review.Rule exposing (Rule)
 
 
 config : List Rule
 config =
     [ NoCoreModuleImports.rule
-    , OnlyQualifiedImports.rule [ "Html", "Svg" ]
+    , OnlyQualifiedImports.rule 
+        [ "Html"
+        , "Html.Attributes"
+        , "Html.Events"
+        , "Svg" ]
     , UnnecessaryIf.rule
+    , NoMinimalUnderscorePattern.rule 4
     ]
