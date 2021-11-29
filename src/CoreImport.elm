@@ -1,7 +1,7 @@
 module CoreImport exposing (..)
 
 import Basics exposing (..)
-import List exposing (List, (::))
+import List exposing ((::))
 import Maybe exposing (Maybe(..))
 import Result exposing (Result(..))
 import String exposing (String)
