@@ -12,7 +12,7 @@ import Elm.Syntax.Node as Node exposing (Node)
 import Review.Rule as Rule exposing (Error, Rule)
 
 
-{-| Reports the use of unqualified imports
+{-| Reports the use of unqualified imports, with a whitelist of modules, which are allowed to import unqualified, like Html or Svg.
 
     config =
         [ OnlyQualifiedImports.rule ["Html", "Svg"]
