@@ -123,17 +123,18 @@ expressionEnterVisitor : Node Expression -> ModuleContext -> ( List (Error {}), 
 expressionEnterVisitor node context =
     case Node.value node of
         Expression.CaseExpression { cases } ->
-            if hasAllPattern cases then
-                ( checkCase node cases context, context )
+            case findAllPattern cases of
+                Nothing ->
+                    ( [], context )
 
-            else
-                ( [], context )
+                Just ( pattern, _ ) ->
+                    ( checkCase pattern cases context, context )
 
         _ ->
             ( [], context )
 
 
-checkCase : Node Expression -> List Expression.Case -> ModuleContext -> List (Error {})
+checkCase : Node Pattern -> List Expression.Case -> ModuleContext -> List (Error {})
 checkCase node cases { customTypes, threshold } =
     case List.head cases of
         Nothing ->
@@ -159,9 +160,9 @@ checkCase node cases { customTypes, threshold } =
                     []
 
 
-hasAllPattern : List Expression.Case -> Bool
-hasAllPattern cases =
-    List.any (\( pattern, _ ) -> isAllPattern pattern) cases
+findAllPattern : List Expression.Case -> Maybe ( Node Pattern, Node Expression )
+findAllPattern cases =
+    List.Extra.find (\( pattern, _ ) -> isAllPattern pattern) cases
 
 
 isAllPattern : Node Pattern -> Bool
