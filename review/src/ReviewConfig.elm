@@ -12,20 +12,23 @@ when inside the directory containing this file.
 -}
 
 import NoCoreModuleImports
-import OnlyQualifiedImports
-import UnnecessaryIf
+import NoIfNegations
 import NoMinimalUnderscorePattern
+import OnlyQualifiedImports
 import Review.Rule exposing (Rule)
+import UnnecessaryIf
 
 
 config : List Rule
 config =
     [ NoCoreModuleImports.rule
-    , OnlyQualifiedImports.rule 
+    , OnlyQualifiedImports.rule
         [ "Html"
         , "Html.Attributes"
         , "Html.Events"
-        , "Svg" ]
+        , "Svg"
+        ]
     , UnnecessaryIf.rule
     , NoMinimalUnderscorePattern.rule 4
+    , NoIfNegations.rule
     ]
