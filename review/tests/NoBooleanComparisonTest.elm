@@ -12,6 +12,7 @@ all =
         , testRule "bar == False"
         , testRule "True == bar"
         , testRule "False == bar"
+        , testRule "True == (not bar)"
         ]
 
 
@@ -32,7 +33,7 @@ module Foo exposing (..)
 
 foo : Bool -> Bool
 foo bar = 
-    if """ ++ expr ++ " then True else False"
+    """ ++ expr
 
 
 assertError : String -> ExpectedError
