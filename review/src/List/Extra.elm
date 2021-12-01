@@ -1,4 +1,4 @@
-module List.Extra exposing (find)
+module List.Extra exposing (find, last)
 
 
 find : (a -> Bool) -> List a -> Maybe a
@@ -13,3 +13,13 @@ find pred l =
 
             else
                 find pred xs
+
+last : List a -> Maybe a
+last list =
+    case list of
+    [] ->
+        Nothing
+    x :: [] -> 
+        Just x 
+    _ :: xs ->
+        last xs
