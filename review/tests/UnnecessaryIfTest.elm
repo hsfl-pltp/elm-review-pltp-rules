@@ -20,17 +20,18 @@ all =
 
 expectedError : { message : String, details : List String, under : String }
 expectedError =
- { message = "This is an unnecessary if."
-        , details =
-            [ "An if expression with True and False as results, the result is the expression itself."
-            , "For Example: \"if b then True else False\" is the same as \"b\", "
-            ]
+    { message = "This is an unnecessary if."
+    , details =
+        [ "An if expression with True and False as results, the result is the expression itself."
+        , "For Example: \"if b then True else False\" is the same as \"b\", "
+        ]
     , under = "if bar then True else False"
     }
 
 
 source : String
-source = """
+source =
+    """
 module Foo exposing (..)
 
 foo : Bool -> Bool
