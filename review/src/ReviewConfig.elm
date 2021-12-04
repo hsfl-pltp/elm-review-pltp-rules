@@ -17,6 +17,8 @@ import NoMinimalUnderscorePattern
 import OnlyQualifiedImports
 import Review.Rule exposing (Rule)
 import UnnecessaryIf
+import UseCommutingConversions
+import UseEtaReductions
 
 
 config : List Rule
@@ -31,4 +33,6 @@ config =
     , UnnecessaryIf.rule
     , NoMinimalUnderscorePattern.rule 4
     , NoIfNegations.rule
+    , UseEtaReductions.rule
+    , UseCommutingConversions.rule
     ]
