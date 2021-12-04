@@ -1,8 +1,8 @@
 module EtaReduction exposing (..)
 
 incList : List Int -> List Int
-incList  = 
-    List.map inc 
+incList list = 
+    List.map inc list
 
 inc : Int -> Int 
 inc i =

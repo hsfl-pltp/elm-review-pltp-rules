@@ -61,16 +61,16 @@ validateFunctionImplementation : Node FunctionImplementation -> List (Error {})
 validateFunctionImplementation (Node _ { expression, arguments }) =
     case Node.value expression of
         Expression.Application list ->
-            validateApplication (List.Extra.last list) (List.Extra.last arguments) applicationErrors
+            validateApplication (List.Extra.last list) (List.Extra.last arguments) (applicationErrors expression)
 
         Expression.OperatorApplication _ _ _ right ->
-            validateApplication (Just right) (List.Extra.last arguments) operatorErrors
+            validateApplication (Just right) (List.Extra.last arguments) (operatorErrors expression)
 
         _ ->
             []
 
 
-validateApplication : Maybe (Node Expression) -> Maybe (Node Pattern) -> (Node Expression -> List (Error {})) -> List (Error {})
+validateApplication : Maybe (Node Expression) -> Maybe (Node Pattern) -> List (Error {}) -> List (Error {})
 validateApplication expression argument error =
     case expression of
         Nothing ->
@@ -83,7 +83,7 @@ validateApplication expression argument error =
 
                 Just pattern ->
                     if isEqualPattern e pattern then
-                        error e
+                        error
 
                     else
                         []
