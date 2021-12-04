@@ -12,9 +12,10 @@ when inside the directory containing this file.
 -}
 
 import NoCoreModuleImports
+import NoForbiddenFeatures
 import NoIfNegations
-import NoMinimalUnderscorePattern
 import NoMinimalRecordDestructing
+import NoMinimalUnderscorePattern
 import OnlyQualifiedImports
 import Review.Rule exposing (Rule)
 import UnnecessaryIf
@@ -34,8 +35,11 @@ config =
     , UnnecessaryIf.rule
     , NoMinimalUnderscorePattern.rule 4
     , NoMinimalRecordDestructing.rule 1
+    , NoForbiddenFeatures.rule
+        { operators = [ "|>" ]
+        , functions = [ "List.map" ]
+        }
     , NoIfNegations.rule
     , UseEtaReductions.rule
     , UseCommutingConversions.rule
     ]
-    
