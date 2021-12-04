@@ -1,11 +1,5 @@
 module IfNegation exposing (..)
 
-import Html exposing (div)
-import Html.Attributes exposing (class)
-import Html.Events exposing (onClick)
-import List exposing (map)
-
-
 notIf : Bool -> Bool
 notIf a =
     if not a then

@@ -1,8 +1,8 @@
-module UnnecessaryIfTest exposing (all)
+module NoUnnecessaryIfTest exposing (all)
 
 import Review.Test
 import Test exposing (Test, describe, test)
-import UnnecessaryIf exposing (rule)
+import NoUnnecessaryIf exposing (rule)
 
 
 all : Test

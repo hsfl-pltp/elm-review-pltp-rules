@@ -16,9 +16,9 @@ import NoForbiddenFeatures
 import NoIfNegations
 import NoMinimalRecordDestructing
 import NoMinimalUnderscorePattern
-import OnlyQualifiedImports
+import NoOnlyUnQualifiedImports
 import Review.Rule exposing (Rule)
-import UnnecessaryIf
+import NoUnnecessaryIf
 import UseCommutingConversions
 import UseEtaReductions
 
@@ -26,13 +26,13 @@ import UseEtaReductions
 config : List Rule
 config =
     [ NoCoreModuleImports.rule
-    , OnlyQualifiedImports.rule
+    , NoOnlyUnQualifiedImports.rule
         [ "Html"
         , "Html.Attributes"
         , "Html.Events"
         , "Svg"
         ]
-    , UnnecessaryIf.rule
+    , NoUnnecessaryIf.rule
     , NoMinimalUnderscorePattern.rule 4
     , NoMinimalRecordDestructing.rule 1
     , NoForbiddenFeatures.rule

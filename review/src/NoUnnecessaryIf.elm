@@ -1,4 +1,4 @@
-module UnnecessaryIf exposing (rule)
+module NoUnnecessaryIf exposing (rule)
 
 {-| Forbids the use of unnecessary if statements
 

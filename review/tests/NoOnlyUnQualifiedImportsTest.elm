@@ -1,6 +1,6 @@
-module OnlyQualifiedImportsTest exposing (all)
+module NoOnlyUnQualifiedImportsTest exposing (all)
 
-import OnlyQualifiedImports exposing (rule)
+import NoOnlyUnQualifiedImports exposing (rule)
 import Review.Test
 import Test exposing (Test, describe, test)
 
