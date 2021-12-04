@@ -17,10 +17,11 @@ import NoIfNegations
 import NoMinimalRecordDestructing
 import NoMinimalUnderscorePattern
 import NoOnlyUnQualifiedImports
-import Review.Rule exposing (Rule)
 import NoUnnecessaryIf
+import Review.Rule exposing (Rule)
 import UseCommutingConversions
 import UseEtaReductions
+import UseLogicalOperators
 
 
 config : List Rule
@@ -42,4 +43,5 @@ config =
     , NoIfNegations.rule
     , UseEtaReductions.rule
     , UseCommutingConversions.rule
+    , UseLogicalOperators.rule
     ]
