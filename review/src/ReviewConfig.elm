@@ -14,6 +14,7 @@ when inside the directory containing this file.
 import NoCoreModuleImports
 import NoIfNegations
 import NoMinimalUnderscorePattern
+import NoMinimalRecordDestructing
 import OnlyQualifiedImports
 import Review.Rule exposing (Rule)
 import UnnecessaryIf
@@ -32,7 +33,9 @@ config =
         ]
     , UnnecessaryIf.rule
     , NoMinimalUnderscorePattern.rule 4
+    , NoMinimalRecordDestructing.rule 1
     , NoIfNegations.rule
     , UseEtaReductions.rule
     , UseCommutingConversions.rule
     ]
+    
