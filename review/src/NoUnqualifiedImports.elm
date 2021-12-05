@@ -7,6 +7,7 @@ module NoUnqualifiedImports exposing (rule)
 -}
 
 import Elm.Syntax.Exposing exposing (Exposing(..), TopLevelExpose(..))
+import Elm.Syntax.Expression exposing (Function)
 import Elm.Syntax.Import exposing (Import)
 import Elm.Syntax.Node as Node exposing (Node)
 import Review.Rule as Rule exposing (Error, Rule)
@@ -15,7 +16,7 @@ import Review.Rule as Rule exposing (Error, Rule)
 {-| Reports the use of unqualified imports, with a whitelist of modules, which are allowed to import unqualified, like Html or Svg.
 
     config =
-        [ OnlyQualifiedImports.rule ["Html", "Svg"]
+        [ OnlyQualifiedImports.rule [ "Html", "Svg" ]
         ]
 
 
@@ -78,33 +79,27 @@ checkExposed node e =
             exposingAllError node
 
         Explicit list ->
-            checkExposingList node list
+            validateExposingList list
 
 
-checkExposingList : Node Import -> List (Node TopLevelExpose) -> List (Error {})
-checkExposingList node list =
+validateExposingList : List (Node TopLevelExpose) -> List (Error {})
+validateExposingList list =
     case list of
         [] ->
             []
 
         x :: xs ->
-            isFunctionExpose node (Node.value x) ++ checkExposingList node xs
+            validateExpose x ++ validateExposingList xs
 
 
-isFunctionExpose : Node Import -> TopLevelExpose -> List (Error {})
-isFunctionExpose node t =
-    case t of
-        InfixExpose _ ->
+validateExpose : Node TopLevelExpose -> List (Error {})
+validateExpose node =
+    case Node.value node of
+        FunctionExpose func ->
+            ruleErrors node func
+
+        _ ->
             []
-
-        TypeOrAliasExpose _ ->
-            []
-
-        TypeExpose _ ->
-            []
-
-        FunctionExpose _ ->
-            ruleErrors node
 
 
 exposingAllError : Node Import -> List (Error {})
@@ -121,13 +116,13 @@ exposingAllError node =
     ]
 
 
-ruleErrors : Node Import -> List (Error {})
-ruleErrors node =
+ruleErrors : Node TopLevelExpose -> String -> List (Error {})
+ruleErrors node func =
     [ Rule.error
-        { message = "This is not an qualified import"
+        { message = "This is not an qualified import: " ++ func
         , details =
-            [ "A qualified import is something like 'import Foo'"
-            , "and should be used like 'Foo.bar', to make clear, from which module 'bar' is coming from"
+            [ "A qualified import is a import, only exposing Types, like  \"import Foo exposing (MyCustomType)\""
+            , "This make it easier to determine from which module the function is coming from"
             ]
         }
         (Node.range node)

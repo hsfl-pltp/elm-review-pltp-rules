@@ -20,12 +20,12 @@ all =
 
 expectedError : { message : String, details : List String, under : String }
 expectedError =
-    { message = "This is not an qualified import"
+    { message = "This is not an qualified import: map"
         , details =
-            [ "A qualified import is something like 'import Foo'"
-            , "and should be used like 'Foo.bar', to make clear, from which module 'bar' is coming from"
+            [ "A qualified import is a import, only exposing Types, like  \"import Foo exposing (MyCustomType)\""
+            , "This make it easier to determine from which module the function is coming from"
             ]
-    , under = "import List exposing (map)"
+    , under = "map"
     }
 
 
