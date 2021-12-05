@@ -11,6 +11,7 @@ import NoDebug.Log
 import NoDebug.TodoOrToString
 import NoExposingEverything
 import NoForbiddenFeatures
+import NoIfCascade
 import NoIfNegations
 import NoImportingEverything
 import NoMinimalRecordDestructing
@@ -42,6 +43,7 @@ config =
         { operators = [ "|>" ]
         , functions = [ "List.map" ]
         }
+    , NoIfCascade.rule
     , NoIfNegations.rule
     , NoImportingEverything.rule []
     , NoMinimalRecordDestructing.rule 1
