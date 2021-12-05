@@ -8,6 +8,10 @@
         "direct": {
             "elm/core": "1.0.5",
             "jfmengels/elm-review": "2.6.1",
+            "jfmengels/elm-review-debug": "1.0.6",
+            "jfmengels/review-common": "1.2.3",
+            "jfmengels/review-unused": "2.1.5",
+            "sparksp/elm-review-camelcase": "1.1.0",
             "stil4m/elm-syntax": "7.2.8"
         },
         "indirect": {
