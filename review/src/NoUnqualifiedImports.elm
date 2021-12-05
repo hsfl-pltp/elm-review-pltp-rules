@@ -7,7 +7,6 @@ module NoUnqualifiedImports exposing (rule)
 -}
 
 import Elm.Syntax.Exposing exposing (Exposing(..), TopLevelExpose(..))
-import Elm.Syntax.Expression exposing (Function)
 import Elm.Syntax.Import exposing (Import)
 import Elm.Syntax.Node as Node exposing (Node)
 import Review.Rule as Rule exposing (Error, Rule)

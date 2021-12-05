@@ -8,7 +8,7 @@ import Test exposing (Test, describe, test)
 all : Test
 all =
     describe "NoIfCascade"
-        [ test "should report an error when REPLACEME" <|
+        [ test "should report an error when a cascading if expression is found" <|
             \() ->
                 source
                     |> Review.Test.run rule
@@ -24,14 +24,19 @@ expectedError =
     , details =
         [ "Cascading if expression are not needed, because you can solve this using logical operators like \"|| or &&\""
         ]
-    , under = """if foo then
+    , under = under
+    }
+
+
+under : String
+under =
+    """if foo then
         if bar then
             True
         else 
             False
     else 
         False"""
-    }
 
 
 source : String
