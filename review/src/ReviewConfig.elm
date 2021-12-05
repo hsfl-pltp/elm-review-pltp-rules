@@ -2,7 +2,7 @@ module ReviewConfig exposing (config)
 
 {-| This file configures elm-review
 
-Please do not change anything here
+Please do not change anything here!
 
 -}
 
@@ -55,6 +55,7 @@ config =
         , "Html.Attributes"
         , "Html.Events"
         , "Svg"
+        , "Svg.Attributes"
         ]
     , NoUnused.CustomTypeConstructors.rule []
     , NoUnused.Dependencies.rule

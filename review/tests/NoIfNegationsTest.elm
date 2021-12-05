@@ -19,11 +19,11 @@ all =
 
 expectedError : { message : String, details : List String, under : String }
 expectedError =
-        { message = "This not in the if expression is unnecessary."
-        , details =
-            [ "Negation is not necessary when an expression is of the form \"if not a then b else c\""
-            , "In this case you can remove the negation and swap b and c: \"if a then c else b\""
-            ]
+    { message = "This not in the if expression is unnecessary."
+    , details =
+        [ "Negation is not necessary when an expression is of the form \"if not a then b else c\""
+        , "In this case you can remove the negation and swap b and c: \"if a then c else b\""
+        ]
     , under = "bar |> not"
     }
 

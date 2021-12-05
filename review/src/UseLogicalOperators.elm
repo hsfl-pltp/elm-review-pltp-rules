@@ -6,9 +6,11 @@ module UseLogicalOperators exposing (rule)
 
 -}
 
-import Review.Rule as Rule exposing (Rule, Error)
+import Elm.Syntax.Expression as Expression exposing (Expression)
 import Elm.Syntax.Node as Node exposing (Node)
-import Elm.Syntax.Expression as Expression exposing(Expression)
+import Review.Rule as Rule exposing (Error, Rule)
+
+
 {-| Reports an error when one path of en if expression returns a bool value
 
     config =
@@ -18,32 +20,31 @@ import Elm.Syntax.Expression as Expression exposing(Expression)
 
 ## Fail
 
-
     any : (a -> Bool) -> List a -> Bool
     any isOkey list =
-        case list of 
-            [] -> 
+        case list of
+            [] ->
                 False
+
             x :: xs ->
                 if isOkey x then
                     True
-                else 
+
+                else
                     any isOkey xs
-
-
 
 
 ## Success
 
     any : (a -> Bool) -> List a -> Bool
     any isOkey list =
-        case list of 
-            [] -> 
+        case list of
+            [] ->
                 False
+
             x :: xs ->
                 isOkey x || any isOkey xs
 
-```
 
 -}
 rule : Rule
@@ -58,29 +59,33 @@ expressionVisitor node =
     case Node.value node of
         Expression.IfBlock _ left right ->
             validateIf node left right
+
         _ ->
             []
 
+
 validateIf : Node Expression -> Node Expression -> Node Expression -> List (Error {})
 validateIf node left right =
-    if matchExpression left "True" 
-        || matchExpression left "False"
-        || matchExpression right "True"
-        || matchExpression right "False"
-        then
-            ruleErrors node 
-    else 
+    if
+        matchExpression left "True"
+            || matchExpression left "False"
+            || matchExpression right "True"
+            || matchExpression right "False"
+    then
+        ruleErrors node
+
+    else
         []
 
 
-matchExpression : Node Expression -> String -> Bool 
+matchExpression : Node Expression -> String -> Bool
 matchExpression node expected =
     case Node.value node of
         Expression.FunctionOrValue [] value ->
             value == expected
+
         _ ->
             False
-
 
 
 ruleErrors : Node Expression -> List (Error {})

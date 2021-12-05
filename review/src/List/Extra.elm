@@ -14,12 +14,15 @@ find pred l =
             else
                 find pred xs
 
+
 last : List a -> Maybe a
 last list =
     case list of
-    [] ->
-        Nothing
-    x :: [] -> 
-        Just x 
-    _ :: xs ->
-        last xs
+        [] ->
+            Nothing
+
+        x :: [] ->
+            Just x
+
+        _ :: xs ->
+            last xs

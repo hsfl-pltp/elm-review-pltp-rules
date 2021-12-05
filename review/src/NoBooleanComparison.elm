@@ -9,7 +9,7 @@ module NoBooleanComparison exposing (rule)
 import Elm.Syntax.Expression as Expression exposing (Expression)
 import Elm.Syntax.Node as Node exposing (Node)
 import Review.Rule as Rule exposing (Error, Rule)
-import Elm.Syntax.Expression exposing (Expression)
+
 
 {-| Reports the comparison with booleans
 
@@ -19,9 +19,10 @@ import Elm.Syntax.Expression exposing (Expression)
 
 
 ## Fail
+
     if bar == True then
         ...
-    else 
+    else
         ...
 
     if bar == False then
@@ -29,13 +30,14 @@ import Elm.Syntax.Expression exposing (Expression)
     else
         ...
 
+
 ## Success
 
     if bar then
         ...
-    else 
+    else
         ...
-```
+
 
 -}
 rule : Rule
@@ -48,29 +50,36 @@ rule =
 expressionVisitor : Node Expression -> List (Error {})
 expressionVisitor node =
     case Node.value node of
-        Expression.OperatorApplication "==" _ left right -> 
+        Expression.OperatorApplication "==" _ left right ->
             validateOperatorExpression node left right
-        _ -> 
+
+        _ ->
             []
+
 
 validateOperatorExpression : Node Expression -> Node Expression -> Node Expression -> List (Error {})
 validateOperatorExpression node left right =
-    if matchExpression left "True" 
-    || matchExpression left "False" 
-    || matchExpression right "True"
-    || matchExpression right "False"
+    if
+        matchExpression left "True"
+            || matchExpression left "False"
+            || matchExpression right "True"
+            || matchExpression right "False"
     then
         ruleErrors node
+
     else
         []
 
+
 matchExpression : Node Expression -> String -> Bool
 matchExpression node expected =
-    case Node.value node of 
+    case Node.value node of
         Expression.FunctionOrValue [] value ->
             value == expected
+
         _ ->
             False
+
 
 ruleErrors : Node Expression -> List (Error {})
 ruleErrors node =
