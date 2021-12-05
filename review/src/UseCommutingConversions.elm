@@ -43,7 +43,7 @@ import Review.Rule as Rule exposing (Error, Rule)
 -}
 rule : Rule
 rule =
-    Rule.newModuleRuleSchema "UseCommutingConversionsIf" ()
+    Rule.newModuleRuleSchema "UseCommutingConversions" ()
         -- Add your visitors
         |> Rule.withSimpleExpressionVisitor expressionVisitor
         |> Rule.fromModuleRuleSchema
