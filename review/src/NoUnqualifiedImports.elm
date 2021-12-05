@@ -1,4 +1,4 @@
-module NoOnlyUnQualifiedImports exposing (rule)
+module NoUnqualifiedImports exposing (rule)
 
 {-| Forbids the use of unqualified imports, expect of a white list.
 
