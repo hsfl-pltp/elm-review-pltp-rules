@@ -8,36 +8,84 @@ import UseLogicalOperators exposing (rule)
 all : Test
 all =
     describe "UseLogicalOperators"
-        [ test "should report an error when one path of an if expression returns a boolean value" <|
+        [ test "should report an error when the first path of an if expression returns a boolean value" <|
             \() ->
-                source
+                invalidAndSource
                     |> Review.Test.run rule
                     |> Review.Test.expectErrors
-                        [ Review.Test.error expectedError ]
+                        [ Review.Test.error expectedAndError ]
+        , test "should report an error when the second path of an if expression returns a boolean value" <|
+            \() ->
+                invalidOrSource
+                    |> Review.Test.run rule
+                    |> Review.Test.expectErrors
+                        [ Review.Test.error expectedOrError ]
+        , test "should not report an error when both baths return a boolean value" <|
+            \() ->
+                validSource
+                    |> Review.Test.run rule
+                    |> Review.Test.expectErrors []
         ]
 
 
-expectedError : { message : String, details : List String, under : String }
-expectedError =
-    { message = "Use logical operators instead of if"
+expectedAndError : { message : String, details : List String, under : String }
+expectedAndError =
+    { message = "Use a && operator instead of if"
     , details =
-        [ "When one path of an if expression returns a boolean value, then you can use a logical operator"
-        , "For Example: \"if b then True else func x\" is the same as \"b || func x\", "
+        [ "When the else path of an if expression returns a boolean value, you can use the && operator instead "
+        , "For Example: \"if a then func b else false\" is the same as \"a && func b\", "
         ]
-    , under = under
+    , under = underAnd
     }
 
 
-under : String
-under =
+expectedOrError : { message : String, details : List String, under : String }
+expectedOrError =
+    { message = "Use a || operator instead of if"
+    , details =
+        [ "When the first path of an if expression returns a boolean valu, you can use the || operator instead"
+        , "For Example: \"if a then True else func b\" is the same as \"a || func b\", "
+        ]
+    , under = underOr
+    }
+
+underAnd : String
+underAnd =
+    """if isOkey x then
+                any isOkey xs
+
+            else 
+                False"""
+
+underOr : String
+underOr =
     """if isOkey x then
                 True
             else 
                 any isOkey xs"""
 
 
-source : String
-source =
+invalidAndSource : String
+invalidAndSource =
+    """
+module Foo exposing (..)
+
+any : (a -> Bool) -> List a -> Bool
+any isOkey list =
+    case list of 
+        [] -> 
+            False
+        x :: xs ->
+            if isOkey x then
+                any isOkey xs
+
+            else 
+                False
+"""
+
+
+invalidOrSource : String
+invalidOrSource =
     """
 module Foo exposing (..)
 
@@ -51,4 +99,22 @@ any isOkey list =
                 True
             else 
                 any isOkey xs
+"""
+
+
+validSource : String
+validSource =
+    """
+module Foo exposing (..)
+
+any : (a -> Bool) -> List a -> Bool
+any isOkey list =
+    case list of 
+        [] -> 
+            False
+        x :: xs ->
+            if isOkey x then
+                True
+            else 
+                False
 """

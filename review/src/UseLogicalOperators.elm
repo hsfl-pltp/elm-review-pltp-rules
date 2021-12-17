@@ -7,7 +7,7 @@ module UseLogicalOperators exposing (rule)
 -}
 
 import Elm.Syntax.Expression as Expression exposing (Expression)
-import Elm.Syntax.Node as Node exposing (Node)
+import Elm.Syntax.Node as Node exposing (Node(..))
 import Review.Rule as Rule exposing (Error, Rule)
 
 
@@ -45,7 +45,6 @@ import Review.Rule as Rule exposing (Error, Rule)
             x :: xs ->
                 isOkey x || any isOkey xs
 
-
 -}
 rule : Rule
 rule =
@@ -66,35 +65,57 @@ expressionVisitor node =
 
 validateIf : Node Expression -> Node Expression -> Node Expression -> List (Error {})
 validateIf node left right =
-    if
-        matchExpression left "True"
-            || matchExpression left "False"
-            || matchExpression right "True"
-            || matchExpression right "False"
-    then
-        ruleErrors node
+    errorsForAnd node left right ++ errorsForOr node left right
+
+
+errorsForAnd : Node Expression -> Node Expression -> Node Expression -> List (Error {})
+errorsForAnd node left right =
+    if not (isBooleanExpression left) && isBooleanExpression right then
+        andError node
 
     else
         []
 
 
-matchExpression : Node Expression -> String -> Bool
-matchExpression node expected =
-    case Node.value node of
+errorsForOr : Node Expression -> Node Expression -> Node Expression -> List (Error {})
+errorsForOr node left right =
+    if isBooleanExpression left && not (isBooleanExpression right) then
+        orErrors node
+
+    else
+        []
+
+
+isBooleanExpression : Node Expression -> Bool
+isBooleanExpression (Node _ node) =
+    case node of
         Expression.FunctionOrValue [] value ->
-            value == expected
+            value == "True" || value == "False"
 
         _ ->
             False
 
 
-ruleErrors : Node Expression -> List (Error {})
-ruleErrors node =
+andError : Node Expression -> List (Error {})
+andError node =
     [ Rule.error
-        { message = "Use logical operators instead of if"
+        { message = "Use a && operator instead of if"
         , details =
-            [ "When one path of an if expression returns a boolean value, then you can use a logical operator"
-            , "For Example: \"if b then True else func x\" is the same as \"b || func x\", "
+            [ "When the else path of an if expression returns a boolean value, you can use the && operator instead "
+            , "For Example: \"if a then func b else false\" is the same as \"a && func b\", "
+            ]
+        }
+        (Node.range node)
+    ]
+
+
+orErrors : Node Expression -> List (Error {})
+orErrors node =
+    [ Rule.error
+        { message = "Use a || operator instead of if"
+        , details =
+            [ "When the first path of an if expression returns a boolean valu, you can use the || operator instead"
+            , "For Example: \"if a then True else func b\" is the same as \"a || func b\", "
             ]
         }
         (Node.range node)
