@@ -6,7 +6,7 @@ module NoIfCascade exposing (rule)
 
 -}
 
-import Elm.Syntax.Expression as Expression exposing (Expression, isIfElse)
+import Elm.Syntax.Expression as Expression exposing (Expression)
 import Elm.Syntax.Node as Node exposing (Node(..))
 import Review.Rule as Rule exposing (Error, Rule)
 
@@ -38,6 +38,16 @@ import Review.Rule as Rule exposing (Error, Rule)
         else
             ...
 
+    a =
+        if a then
+            ...
+
+        else if b then
+            ...
+
+         else
+            ...
+
 -}
 rule : Rule
 rule =
@@ -49,25 +59,30 @@ rule =
 expressionVisitor : Node Expression -> List (Error {})
 expressionVisitor node =
     case Node.value node of
-        Expression.IfBlock _ left right ->
-            validateIf node left right
+        Expression.IfBlock _ left _ ->
+            validateIf node left
 
         _ ->
             []
 
 
-validateIf : Node Expression -> Node Expression -> Node Expression -> List (Error {})
-validateIf node left right =
-    if isIfElse left || isIfElse right then
+validateIf : Node Expression -> Node Expression -> List (Error {})
+validateIf node left =
+    if isIfExpression left then
         ruleErrors node
 
     else
         []
 
 
-isIfElse : Node Expression -> Bool
-isIfElse (Node _ node) =
-    Expression.isIfElse node
+isIfExpression : Node Expression -> Bool
+isIfExpression (Node _ node) =
+    case node of
+        Expression.IfBlock _ _ _ ->
+            True
+
+        _ ->
+            False
 
 
 ruleErrors : Node Expression -> List (Error {})

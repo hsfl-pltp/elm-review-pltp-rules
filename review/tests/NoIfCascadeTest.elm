@@ -10,11 +10,16 @@ all =
     describe "NoIfCascade"
         [ test "should report an error when a cascading if expression is found" <|
             \() ->
-                source
+                invalidSource
                     |> Review.Test.run rule
                     |> Review.Test.expectErrors
                         [ Review.Test.error expectedError
                         ]
+        , test "should not report an error when a else if is found" <|
+            \() ->
+                validSource
+                    |> Review.Test.run rule
+                    |> Review.Test.expectErrors []
         ]
 
 
@@ -39,8 +44,8 @@ under =
         False"""
 
 
-source : String
-source =
+invalidSource : String
+invalidSource =
     """
 module Foo exposing (..)
 
@@ -51,6 +56,22 @@ foobar foo bar =
             True
         else 
             False
+    else 
+        False
+"""
+
+
+validSource : String
+validSource =
+    """
+module Foo exposing (..)
+
+foobar : Bool -> Bool -> Bool
+foobar foo bar =
+    if foo then
+        True
+    else if bar then  
+        False
     else 
         False
 """
