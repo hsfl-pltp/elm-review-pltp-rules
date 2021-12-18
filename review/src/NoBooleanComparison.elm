@@ -53,9 +53,11 @@ expressionVisitor node =
         Expression.OperatorApplication "==" _ left right ->
             validateOperatorExpression node left right
 
+        Expression.OperatorApplication "/=" _ left right ->
+            validateOperatorExpression node left right
+
         _ ->
             []
-
 
 validateOperatorExpression : Node Expression -> Node Expression -> Node Expression -> List (Error {})
 validateOperatorExpression node left right =

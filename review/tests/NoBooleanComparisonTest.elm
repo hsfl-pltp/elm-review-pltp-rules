@@ -13,6 +13,11 @@ all =
         , testRule "True == bar"
         , testRule "False == bar"
         , testRule "True == (not bar)"
+        , testRule "bar /= True"
+        , testRule "bar /= False"
+        , testRule "True /= bar"
+        , testRule "False /= bar"
+        , testRule "True /= (not bar)"
         ]
 
 
