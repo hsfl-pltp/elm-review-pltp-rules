@@ -9,6 +9,8 @@ config : Config
 config =
     { operators = [ "|>" ]
     , functions = [ "List.map" ]
+    , letIn = True
+    , productDataTypes = True
     }
 
 
@@ -22,6 +24,8 @@ all =
                     |> Review.Test.expectErrors
                         [ Review.Test.error (expectedError "|>" "bar |> String.fromInt")
                         , Review.Test.error (expectedError "List.map" "List.map")
+                        , Review.Test.error (expectedError "product data types" "Value String")
+                        , Review.Test.error (expectedError "let .. in .." "let a = toString list in a")
                         ]
         ]
 
@@ -41,6 +45,9 @@ source =
     """
 module Foo exposing (..)
 
+type MyType =
+    Value String
+
 foo : Int -> String
 foo bar =
     bar |> String.fromInt
@@ -48,4 +55,9 @@ foo bar =
 toString : List Int -> List String
 toString list =
     List.map String.fromInt list
+
+
+letIn : List Int -> List String 
+letIn list =
+    let a = toString list in a
 """
