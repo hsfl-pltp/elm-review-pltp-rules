@@ -41,7 +41,9 @@ config =
     , NoExposingEverything.rule
     , NoForbiddenFeatures.rule
         { operators = [ "|>" ]
-        , functions = [ "List.map" ]
+        , functions = [ "List.map", "Html.Attributes.class" ]
+        , letIn = True
+        , productDataTypes = True
         }
     , NoIfCascade.rule
     , NoIfNegations.rule
