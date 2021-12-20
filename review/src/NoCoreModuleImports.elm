@@ -7,7 +7,7 @@ module NoCoreModuleImports exposing (rule)
 -}
 
 import Elm.Syntax.Import exposing (Import)
-import Elm.Syntax.Node as Node exposing (Node)
+import Elm.Syntax.Node as Node exposing (Node(..))
 import Review.Rule as Rule exposing (Error, Rule)
 
 
@@ -35,7 +35,6 @@ import Review.Rule as Rule exposing (Error, Rule)
 rule : Rule
 rule =
     Rule.newModuleRuleSchema "NoCoreModuleImports" ()
-        -- Add your visitors
         |> Rule.withSimpleImportVisitor importVisitor
         |> Rule.fromModuleRuleSchema
 
@@ -56,42 +55,28 @@ coreModules =
     ]
 
 
-isCoreModule : List String -> String -> Bool
-isCoreModule list name =
-    case list of
-        [] ->
-            False
-
-        x :: xs ->
-            if name == x then
-                True
-
-            else
-                isCoreModule xs name
-
-
-moduleName : Import -> String
-moduleName i =
-    String.join "." (Node.value i.moduleName)
-
-
 importVisitor : Node Import -> List (Error {})
 importVisitor node =
-    let
-        name : String
-        name =
-            moduleName (Node.value node)
-    in
-    if isCoreModule coreModules name then
-        ruleErrors node name
+    validateImport node (toModuleName node)
+
+
+validateImport : Node Import -> String -> List (Error {})
+validateImport node moduleName =
+    if List.member moduleName coreModules then
+        [ ruleError node moduleName ]
 
     else
         []
 
 
-ruleErrors : Node Import -> String -> List (Error {})
-ruleErrors node name =
-    [ Rule.error
+toModuleName : Node Import -> String
+toModuleName (Node _ { moduleName }) =
+    String.join "." (Node.value moduleName)
+
+
+ruleError : Node Import -> String -> Error {}
+ruleError node name =
+    Rule.error
         { message = "Import of core module found : " ++ name
         , details =
             [ "The import of a core module is not necessary, because they are imported by default."
@@ -99,4 +84,3 @@ ruleErrors node name =
             ]
         }
         (Node.range node)
-    ]
