@@ -1,7 +1,7 @@
 module NoForbiddenFeaturesTest exposing (all)
 
 import NoForbiddenFeatures exposing (Config, rule)
-import Review.Test
+import Review.Test exposing (ExpectedError)
 import Test exposing (Test, describe, test)
 
 
@@ -11,6 +11,7 @@ config =
     , functions = [ "List.map" ]
     , letIn = True
     , productDataTypes = True
+    , lambda = True
     }
 
 
@@ -26,6 +27,33 @@ all =
                         , Review.Test.error (expectedError "List.map" "List.map")
                         , Review.Test.error (expectedError "product data types" "Value String")
                         , Review.Test.error (expectedError "let .. in .." "let a = toString list in a")
+                        , Review.Test.error (expectedError "lambda expressions" "\\i -> String.fromInt e")
+                        ]
+        , test "should not report an error when no features is enabled" <|
+            \() ->
+                source
+                    |> Review.Test.run (rule { operators = [], functions = [], letIn = False, productDataTypes = False, lambda = False })
+                    |> Review.Test.expectErrors []
+        , test "should only report an error for letIn, when letIn is enabled" <|
+            \() ->
+                source
+                    |> Review.Test.run (rule { operators = [], functions = [], letIn = True, productDataTypes = False, lambda = False })
+                    |> Review.Test.expectErrors
+                        [ Review.Test.error (expectedError "let .. in .." "let a = toString list in a")
+                        ]
+        , test "should only report an error for lambda, when lambda is enabled" <|
+            \() ->
+                source
+                    |> Review.Test.run (rule { operators = [], functions = [], letIn = False, productDataTypes = False, lambda = True })
+                    |> Review.Test.expectErrors
+                        [ Review.Test.error (expectedError "lambda expressions" "\\i -> String.fromInt e")
+                        ]
+        , test "should only report an error for productDataTypes, when productDataTypes is enabled" <|
+            \() ->
+                source
+                    |> Review.Test.run (rule { operators = [], functions = [], letIn = False, productDataTypes = True, lambda = False })
+                    |> Review.Test.expectErrors
+                        [ Review.Test.error (expectedError "product data types" "Value String")
                         ]
         ]
 
@@ -60,4 +88,8 @@ toString list =
 letIn : List Int -> List String 
 letIn list =
     let a = toString list in a
+
+withLambda : Int -> List
+withLambda =
+    (\\i -> String.fromInt e)
 """

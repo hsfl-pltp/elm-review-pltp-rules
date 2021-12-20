@@ -16,6 +16,7 @@ import Elm.Syntax.Type exposing (Type, ValueConstructor)
 import Helpers
 import Review.ModuleNameLookupTable exposing (ModuleNameLookupTable)
 import Review.Rule as Rule exposing (Error, Rule)
+import Elm.Syntax.Expression exposing (Lambda)
 
 
 {-| Reports the use of forbidden features and functions
@@ -61,6 +62,7 @@ type alias Config =
     , functions : List String
     , letIn : Bool
     , productDataTypes : Bool
+    , lambda : Bool
     }
 
 
@@ -141,13 +143,16 @@ expressionVisitor node context =
         Expression.LetExpression _ ->
             ( validateLetIn context.config.letIn node, context )
 
+        Expression.LambdaExpression _ ->
+            ( validate context.config.lambda (ruleErrors "lambda expressions") node, context)
+            
         _ ->
             ( [], context )
 
 
 validate : Bool -> (Node a -> Error {}) -> Node a -> List (Error {})
-validate pred toError node =
-    if pred then
+validate isEnabled toError node =
+    if isEnabled then
         [ toError node ]
 
     else
@@ -162,7 +167,6 @@ validateFeature forbidden feature node =
 validateLetIn : Bool -> Node Expression -> List (Error {})
 validateLetIn enabled =
     validate enabled (ruleErrors "let .. in ..")
-
 
 ruleErrors : String -> Node a -> Error {}
 ruleErrors feature node =

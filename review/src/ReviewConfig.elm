@@ -29,6 +29,7 @@ import NoUnused.Variables
 import Review.Rule exposing (Rule)
 import UseCamelCase
 import UseCommutingConversions
+import UseConstantsForStyle
 import UseEtaReductions
 import UseLogicalOperators
 
@@ -44,6 +45,7 @@ config =
         , functions = [ "List.map", "Html.Attributes.class" ]
         , letIn = True
         , productDataTypes = True
+        , lambda = True
         }
     , NoIfCascade.rule
     , NoIfNegations.rule
@@ -67,6 +69,7 @@ config =
     , NoUnused.Patterns.rule
     , NoUnused.Variables.rule
     , UseCommutingConversions.rule
+    , UseConstantsForStyle.rule
     , UseCamelCase.rule UseCamelCase.default
     , UseEtaReductions.rule
     , UseLogicalOperators.rule
