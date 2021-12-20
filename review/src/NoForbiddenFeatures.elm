@@ -13,8 +13,8 @@ import Elm.Syntax.Declaration as Declaration exposing (Declaration)
 import Elm.Syntax.Expression as Expression exposing (Expression)
 import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Type exposing (Type, ValueConstructor)
-import Elm.Syntax.TypeAnnotation as TypeAnnotation exposing (TypeAnnotation)
-import Review.ModuleNameLookupTable as ModuleNameLookupTable exposing (ModuleNameLookupTable)
+import Helpers
+import Review.ModuleNameLookupTable exposing (ModuleNameLookupTable)
 import Review.Rule as Rule exposing (Error, Rule)
 
 
@@ -25,7 +25,7 @@ import Review.Rule as Rule exposing (Error, Rule)
             { operators = [ "|>", "<|" ]
             , functions = [ "List.map", "List.foldr" ]
             , letIn = True
-            , productDataTypes : False
+            , productDataTypes = False
             }
         ]
 
@@ -136,7 +136,7 @@ expressionVisitor node context =
             ( validateFeature context.config.operators operator node, context )
 
         Expression.FunctionOrValue _ func ->
-            ( validateFeature context.config.functions (functionName node context.lookupTable func) node, context )
+            ( validateFeature context.config.functions (Helpers.functionName node context.lookupTable func) node, context )
 
         Expression.LetExpression _ ->
             ( validateLetIn context.config.letIn node, context )
@@ -162,16 +162,6 @@ validateFeature forbidden feature node =
 validateLetIn : Bool -> Node Expression -> List (Error {})
 validateLetIn enabled =
     validate enabled (ruleErrors "let .. in ..")
-
-
-functionName : Node a -> ModuleNameLookupTable -> String -> String
-functionName node lookUpTable func =
-    case ModuleNameLookupTable.moduleNameFor lookUpTable node of
-        Nothing ->
-            func
-
-        Just moduleName ->
-            String.join "." (moduleName ++ [ func ])
 
 
 ruleErrors : String -> Node a -> Error {}
