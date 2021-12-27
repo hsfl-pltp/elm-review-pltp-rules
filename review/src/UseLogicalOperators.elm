@@ -57,21 +57,21 @@ expressionVisitor : Node Expression -> List (Error {})
 expressionVisitor node =
     case Node.value node of
         Expression.IfBlock _ left right ->
-            validateIf node left right
+            errorsForIf node left right
 
         _ ->
             []
 
 
-validateIf : Node Expression -> Node Expression -> Node Expression -> List (Error {})
-validateIf node left right =
-    errorsForAnd node left right ++ errorsForOr node left right
+errorsForIf : Node Expression -> Node Expression -> Node Expression -> List (Error {})
+errorsForIf parent left right =
+    errorsForAnd parent left right ++ errorsForOr parent left right
 
 
 errorsForAnd : Node Expression -> Node Expression -> Node Expression -> List (Error {})
 errorsForAnd node left right =
     if not (isBooleanExpression left) && isBooleanExpression right then
-        andError node
+        [ andError node ]
 
     else
         []
@@ -80,7 +80,7 @@ errorsForAnd node left right =
 errorsForOr : Node Expression -> Node Expression -> Node Expression -> List (Error {})
 errorsForOr node left right =
     if isBooleanExpression left && not (isBooleanExpression right) then
-        orErrors node
+        [ orError node ]
 
     else
         []
@@ -96,22 +96,21 @@ isBooleanExpression (Node _ node) =
             False
 
 
-andError : Node Expression -> List (Error {})
+andError : Node Expression -> Error {}
 andError node =
-    [ Rule.error
+    Rule.error
         { message = "Use a && operator instead of if"
         , details =
             [ "When the else path of an if expression returns a boolean value, you can use the && operator instead "
-            , "For Example: \"if a then func b else false\" is the same as \"a && func b\", "
+            , "For Example: \"if a then func b else False\" is the same as \"a && func b\", "
             ]
         }
         (Node.range node)
-    ]
 
 
-orErrors : Node Expression -> List (Error {})
-orErrors node =
-    [ Rule.error
+orError : Node Expression -> Error {}
+orError node =
+    Rule.error
         { message = "Use a || operator instead of if"
         , details =
             [ "When the first path of an if expression returns a boolean valu, you can use the || operator instead"
@@ -119,4 +118,3 @@ orErrors node =
             ]
         }
         (Node.range node)
-    ]

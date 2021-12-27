@@ -38,7 +38,6 @@ import Review.Rule as Rule exposing (Error, Rule)
     else
         ...
 
-
 -}
 rule : Rule
 rule =
@@ -51,23 +50,24 @@ expressionVisitor : Node Expression -> List (Error {})
 expressionVisitor node =
     case Node.value node of
         Expression.OperatorApplication "==" _ left right ->
-            validateOperatorExpression node left right
+            errorsForOperator node left right
 
         Expression.OperatorApplication "/=" _ left right ->
-            validateOperatorExpression node left right
+            errorsForOperator node left right
 
         _ ->
             []
 
-validateOperatorExpression : Node Expression -> Node Expression -> Node Expression -> List (Error {})
-validateOperatorExpression node left right =
+
+errorsForOperator : Node Expression -> Node Expression -> Node Expression -> List (Error {})
+errorsForOperator node left right =
     if
         matchExpression left "True"
             || matchExpression left "False"
             || matchExpression right "True"
             || matchExpression right "False"
     then
-        ruleErrors node
+        [ruleError node]
 
     else
         []
@@ -83,9 +83,9 @@ matchExpression node expected =
             False
 
 
-ruleErrors : Node Expression -> List (Error {})
-ruleErrors node =
-    [ Rule.error
+ruleError : Node Expression -> Error {}
+ruleError node =
+    Rule.error
         { message = "Detected a comparison with boolean"
         , details =
             [ "There is no need to compare a value of Type Boolean with \"True\" or \"False\""
@@ -93,4 +93,3 @@ ruleErrors node =
             ]
         }
         (Node.range node)
-    ]

@@ -23,7 +23,7 @@ expectedError =
     { message = "This is not an qualified import: map"
     , details =
         [ "A qualified import is a import, only exposing Types, like  \"import Foo exposing (MyCustomType)\""
-        , "This make it easier to determine from which module the function is coming from"
+        , "This make it easier to determine from which module the function is coming from."
         ]
     , under = "map"
     }

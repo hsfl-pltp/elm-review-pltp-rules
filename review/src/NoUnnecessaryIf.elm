@@ -24,15 +24,29 @@ foo : Bool -> Bool
 foo bar =
 if bar then
 True
-else
+
+    else
+        False
+
+foo2 : Bool -> Bool
+foo2 bar =
+if bar then
 False
+
+    else
+        True
 
 
 ## Success
 
 foo : Bool -> Bool
 foo bar =
-bar
+
+    bar
+
+foo2 : Bool -> Bool
+foo2 bar =
+not bar
 
 -}
 rule : Rule
@@ -47,16 +61,16 @@ expressionVisitor : Node Expression -> List (Error {})
 expressionVisitor node =
     case Node.value node of
         Expression.IfBlock _ left right ->
-            validateIf node left right
+            errorsForIf node left right ++ errorsForIf node right left
 
         _ ->
             []
 
 
-validateIf : Node Expression -> Node Expression -> Node Expression -> List (Error {})
-validateIf node left right =
+errorsForIf : Node Expression -> Node Expression -> Node Expression -> List (Error {})
+errorsForIf parent left right =
     if matchExpression left "True" && matchExpression right "False" then
-        ruleErrors node
+        [ ifError parent ]
 
     else
         []
@@ -72,14 +86,14 @@ matchExpression node expected =
             False
 
 
-ruleErrors : Node Expression -> List (Error {})
-ruleErrors node =
-    [ Rule.error
+ifError : Node Expression -> Error {}
+ifError node =
+    Rule.error
         { message = "This is an unnecessary if."
         , details =
             [ "An if expression with True and False as results, the result is the expression itself."
-            , "For Example: \"if b then True else False\" is the same as \"b\", "
+            , "For Example: \"if b then True else False\" is the same as \"b\""
+            , "But carefully, when the expression is \"if b then False else True\", the replacement is \"not b\""
             ]
         }
         (Node.range node)
-    ]

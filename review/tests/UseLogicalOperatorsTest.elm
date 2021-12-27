@@ -24,7 +24,7 @@ all =
             \() ->
                 validSource
                     |> Review.Test.run rule
-                    |> Review.Test.expectErrors []
+                    |> Review.Test.expectNoErrors
         ]
 
 
@@ -33,7 +33,7 @@ expectedAndError =
     { message = "Use a && operator instead of if"
     , details =
         [ "When the else path of an if expression returns a boolean value, you can use the && operator instead "
-        , "For Example: \"if a then func b else false\" is the same as \"a && func b\", "
+        , "For Example: \"if a then func b else False\" is the same as \"a && func b\", "
         ]
     , under = underAnd
     }
@@ -49,6 +49,7 @@ expectedOrError =
     , under = underOr
     }
 
+
 underAnd : String
 underAnd =
     """if isOkey x then
@@ -56,6 +57,7 @@ underAnd =
 
             else 
                 False"""
+
 
 underOr : String
 underOr =

@@ -21,15 +21,14 @@ import Review.Rule as Rule exposing (Error, Rule)
 ## Fail
 
     import List exposing (map)
-
-    a =
-        map (\e -> e + 1) [ 1, 2, 3 ]
+    import String exposing (contains)
 
 
 ## Success
 
-    a =
-        List.map (\e -> e + 1) [ 1, 2, 3 ]
+    -- No Import of List and String
+
+
 
 -}
 rule : Rule
@@ -57,13 +56,13 @@ coreModules =
 
 importVisitor : Node Import -> List (Error {})
 importVisitor node =
-    validateImport node (toModuleName node)
+    errorsForImport node (toModuleName node)
 
 
-validateImport : Node Import -> String -> List (Error {})
-validateImport node moduleName =
+errorsForImport : Node Import -> String -> List (Error {})
+errorsForImport node moduleName =
     if List.member moduleName coreModules then
-        [ ruleError node moduleName ]
+        [ importError node moduleName ]
 
     else
         []
@@ -74,8 +73,8 @@ toModuleName (Node _ { moduleName }) =
     String.join "." (Node.value moduleName)
 
 
-ruleError : Node Import -> String -> Error {}
-ruleError node name =
+importError : Node Import -> String -> Error {}
+importError node name =
     Rule.error
         { message = "Import of core module found : " ++ name
         , details =
