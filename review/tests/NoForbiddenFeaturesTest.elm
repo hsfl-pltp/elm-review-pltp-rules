@@ -10,7 +10,7 @@ config =
     { operators = [ "|>" ]
     , functions = [ "List.map" ]
     , letIn = True
-    , productDataTypes = True
+    , algebraicDataTypes = True
     , lambda = True
     }
 
@@ -25,35 +25,35 @@ all =
                     |> Review.Test.expectErrors
                         [ Review.Test.error (expectedError "|>" "bar |> String.fromInt")
                         , Review.Test.error (expectedError "List.map" "List.map")
-                        , Review.Test.error (expectedError "product data types" "Value String")
+                        , Review.Test.error (expectedError "algebraic data type" "Value String")
                         , Review.Test.error (expectedError "let .. in .." "let a = toString list in a")
                         , Review.Test.error (expectedError "lambda expressions" "\\i -> String.fromInt e")
                         ]
         , test "should not report an error when no features is enabled" <|
             \() ->
                 source
-                    |> Review.Test.run (rule { operators = [], functions = [], letIn = False, productDataTypes = False, lambda = False })
+                    |> Review.Test.run (rule { operators = [], functions = [], letIn = False, algebraicDataTypes = False, lambda = False })
                     |> Review.Test.expectErrors []
         , test "should only report an error for letIn, when letIn is enabled" <|
             \() ->
                 source
-                    |> Review.Test.run (rule { operators = [], functions = [], letIn = True, productDataTypes = False, lambda = False })
+                    |> Review.Test.run (rule { operators = [], functions = [], letIn = True, algebraicDataTypes = False, lambda = False })
                     |> Review.Test.expectErrors
                         [ Review.Test.error (expectedError "let .. in .." "let a = toString list in a")
                         ]
         , test "should only report an error for lambda, when lambda is enabled" <|
             \() ->
                 source
-                    |> Review.Test.run (rule { operators = [], functions = [], letIn = False, productDataTypes = False, lambda = True })
+                    |> Review.Test.run (rule { operators = [], functions = [], letIn = False, algebraicDataTypes = False, lambda = True })
                     |> Review.Test.expectErrors
                         [ Review.Test.error (expectedError "lambda expressions" "\\i -> String.fromInt e")
                         ]
-        , test "should only report an error for productDataTypes, when productDataTypes is enabled" <|
+        , test "should only report an error for algebraicDataTypes, when algebraicDataTypes is enabled" <|
             \() ->
                 source
-                    |> Review.Test.run (rule { operators = [], functions = [], letIn = False, productDataTypes = True, lambda = False })
+                    |> Review.Test.run (rule { operators = [], functions = [], letIn = False, algebraicDataTypes = True, lambda = False })
                     |> Review.Test.expectErrors
-                        [ Review.Test.error (expectedError "product data types" "Value String")
+                        [ Review.Test.error (expectedError "algebraic data type" "Value String")
                         ]
         ]
 

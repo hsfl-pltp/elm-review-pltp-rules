@@ -7,10 +7,11 @@ module UseConstantsForStyle exposing (rule)
 -}
 
 import Elm.Syntax.Expression as Expression exposing (Expression)
+import Elm.Syntax.ModuleName exposing (ModuleName)
 import Elm.Syntax.Node as Node exposing (Node)
 import Helpers
 import List.Extra
-import Review.ModuleNameLookupTable exposing (ModuleNameLookupTable)
+import Review.ModuleNameLookupTable as ModuleNameLookupTable exposing (ModuleNameLookupTable)
 import Review.Rule as Rule exposing (Error, Rule)
 
 
@@ -24,28 +25,17 @@ import Review.Rule as Rule exposing (Error, Rule)
 ## Fail
 
     a =
-        "REPLACEME example to replace"
+        div [ text "hello world" ]
 
 
 ## Success
 
+    aStyle : List (Attribute msg)
+    aStyle =
+        [ style "padding" "0", style "margin" "0" ]
+
     a =
-        "REPLACEME example to replace"
-
-
-## When (not) to enable this rule
-
-This rule is useful when REPLACEME.
-This rule is not useful when REPLACEME.
-
-
-## Try it out
-
-You can try this rule out by running the following command:
-
-```bash
-elm-review --template undefined/example --rules UseConstantsForStyle
-```
+        div aStyle [ text "hello world" ]
 
 -}
 
@@ -158,6 +148,17 @@ htmlElements =
     ]
 
 
+rule : Rule
+rule =
+    Rule.newModuleRuleSchemaUsingContextCreator "UseConstantsForStyle" initialContext
+        |> Rule.withExpressionEnterVisitor expressionVisitor
+        |> Rule.fromModuleRuleSchema
+
+
+
+-- Context
+
+
 type alias Context =
     { lookupTable : ModuleNameLookupTable }
 
@@ -171,34 +172,31 @@ initialContext =
         |> Rule.withModuleNameLookupTable
 
 
-rule : Rule
-rule =
-    Rule.newModuleRuleSchemaUsingContextCreator "UseConstantsForStyle" initialContext
-        |> Rule.withExpressionEnterVisitor expressionVisitor
-        |> Rule.fromModuleRuleSchema
+
+-- Expression visitor
 
 
 expressionVisitor : Node Expression -> Context -> ( List (Error {}), Context )
 expressionVisitor node context =
     case Node.value node of
         Expression.Application (element :: attributes :: _) ->
-            ( validateHtmlElement element attributes context, context )
+            ( errorsForHtmlElement element attributes context, context )
 
         _ ->
             ( [], context )
 
 
-validateHtmlElement : Node Expression -> Node Expression -> Context -> List (Error {})
-validateHtmlElement node attributes context =
+errorsForHtmlElement : Node Expression -> Node Expression -> Context -> List (Error {})
+errorsForHtmlElement node attributes context =
     if isHtmlElement node context.lookupTable then
-        validateAttributes attributes context
+        errorsForAttributes attributes context
 
     else
         []
 
 
-validateAttributes : Node Expression -> Context -> List (Error {})
-validateAttributes node context =
+errorsForAttributes : Node Expression -> Context -> List (Error {})
+errorsForAttributes node context =
     case Node.value node of
         Expression.ListExpr nodes ->
             if List.Extra.some (isStyleAttribute context.lookupTable) nodes then
@@ -207,9 +205,6 @@ validateAttributes node context =
             else
                 []
 
-        -- if List.Extra.some (isStyleAttribute context.lookupTable) attributes then
-        -- else
-        -- []
         _ ->
             []
 
@@ -218,11 +213,8 @@ isHtmlElement : Node Expression -> ModuleNameLookupTable -> Bool
 isHtmlElement node lookupTable =
     case Node.value node of
         Expression.FunctionOrValue _ func ->
-            let
-                qualifiedName =
-                    Helpers.functionName node lookupTable func
-            in
-            isFromHtmlModule qualifiedName && List.member func htmlElements
+            isFromHtmlModule (ModuleNameLookupTable.moduleNameFor lookupTable node)
+                && List.member func htmlElements
 
         _ ->
             False
@@ -232,7 +224,7 @@ isStyleAttribute : ModuleNameLookupTable -> Node Expression -> Bool
 isStyleAttribute lookupTable node =
     case Node.value node of
         Expression.FunctionOrValue _ func ->
-            func == "style"
+            Helpers.functionName node lookupTable func == "Html.Attributes.style"
 
         Expression.Application (x :: _) ->
             isStyleAttribute lookupTable x
@@ -241,9 +233,14 @@ isStyleAttribute lookupTable node =
             False
 
 
-isFromHtmlModule : String -> Bool
-isFromHtmlModule =
-    String.startsWith "Html"
+isFromHtmlModule : Maybe ModuleName -> Bool
+isFromHtmlModule name =
+    case name of
+        Just moduleName ->
+            [ "Html" ] == moduleName
+
+        Nothing ->
+            False
 
 
 ruleError : Node Expression -> Error {}

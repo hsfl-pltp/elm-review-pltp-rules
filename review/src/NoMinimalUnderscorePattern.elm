@@ -54,7 +54,6 @@ import Set exposing (Set)
 rule : Int -> Rule
 rule threshold =
     Rule.newProjectRuleSchema "NoMinimalUnderscorePattern" (initProjectContext threshold)
-        -- Add your visitors
         |> Rule.withModuleVisitor moduleVisitor
         |> Rule.withModuleContextUsingContextCreator
             { fromProjectToModule = fromProjectToModule

@@ -44,7 +44,7 @@ config =
         { operators = [ "|>" ]
         , functions = [ "List.map", "Html.Attributes.class" ]
         , letIn = True
-        , productDataTypes = True
+        , algebraicDataTypes = True
         , lambda = True
         }
     , NoIfCascade.rule

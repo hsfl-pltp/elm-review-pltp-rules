@@ -23,7 +23,7 @@ import Review.Rule as Rule exposing (Error, Rule)
 foo : Bool -> Bool
 foo bar =
 if bar then
-True
+    True
 
     else
         False
@@ -31,7 +31,7 @@ True
 foo2 : Bool -> Bool
 foo2 bar =
 if bar then
-False
+    False
 
     else
         True
@@ -46,13 +46,12 @@ foo bar =
 
 foo2 : Bool -> Bool
 foo2 bar =
-not bar
+    not bar
 
 -}
 rule : Rule
 rule =
     Rule.newModuleRuleSchema "UnnecessaryIf" ()
-        -- Add your visitors
         |> Rule.withSimpleExpressionVisitor expressionVisitor
         |> Rule.fromModuleRuleSchema
 

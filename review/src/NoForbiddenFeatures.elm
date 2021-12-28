@@ -12,7 +12,7 @@ module NoForbiddenFeatures exposing
 import Elm.Syntax.Declaration as Declaration exposing (Declaration)
 import Elm.Syntax.Expression as Expression exposing (Expression)
 import Elm.Syntax.Node as Node exposing (Node(..))
-import Elm.Syntax.Type exposing (Type, ValueConstructor)
+import Elm.Syntax.Type exposing (ValueConstructor)
 import Helpers
 import Review.ModuleNameLookupTable exposing (ModuleNameLookupTable)
 import Review.Rule as Rule exposing (Error, Rule)
@@ -60,7 +60,7 @@ type alias Config =
     { operators : List String
     , functions : List String
     , letIn : Bool
-    , productDataTypes : Bool
+    , algebraicDataTypes : Bool
     , lambda : Bool
     }
 
@@ -100,30 +100,28 @@ rule config =
 
 declarationVisitor : Node Declaration -> Context -> ( List (Error {}), Context )
 declarationVisitor node context =
-    if context.config.productDataTypes then
-        case Node.value node of
-            Declaration.CustomTypeDeclaration nodeType ->
-                ( validateCustomTypeDeclaration nodeType, context )
-
-            _ ->
-                ( [], context )
+    if context.config.algebraicDataTypes then
+        ( errorsForDeclaration node, context )
 
     else
         ( [], context )
 
 
-validateCustomTypeDeclaration : Type -> List (Error {})
-validateCustomTypeDeclaration { constructors } =
-    List.concatMap validateValueConstructor constructors
+errorsForDeclaration : Node Declaration -> List (Error {})
+errorsForDeclaration node =
+    case Node.value node of
+        Declaration.CustomTypeDeclaration { constructors } ->
+            constructors
+                |> List.filter hasValueConstructor
+                |> List.map (ruleError "algebraic data type")
+
+        _ ->
+            []
 
 
-validateValueConstructor : Node ValueConstructor -> List (Error {})
-validateValueConstructor (Node range valueConstructor) =
-    if List.isEmpty valueConstructor.arguments then
-        []
-
-    else
-        [ ruleErrors "product data types" (Node range valueConstructor) ]
+hasValueConstructor : Node ValueConstructor -> Bool
+hasValueConstructor (Node _ { arguments }) =
+    not (List.isEmpty arguments)
 
 
 
@@ -134,42 +132,42 @@ expressionVisitor : Node Expression -> Context -> ( List (Error {}), Context )
 expressionVisitor node context =
     case Node.value node of
         Expression.OperatorApplication operator _ _ _ ->
-            ( validateFeature context.config.operators operator node, context )
+            ( errorsForFeature context.config.operators operator node, context )
 
         Expression.FunctionOrValue _ func ->
-            ( validateFeature context.config.functions (Helpers.functionName node context.lookupTable func) node, context )
+            ( errorsForFeature context.config.functions (Helpers.functionName node context.lookupTable func) node, context )
 
         Expression.LetExpression _ ->
-            ( validateLetIn context.config.letIn node, context )
+            ( errorsForLetIn context.config.letIn node, context )
 
         Expression.LambdaExpression _ ->
-            ( validate context.config.lambda (ruleErrors "lambda expressions") node, context )
+            ( toErrorsIfForbidden context.config.lambda (ruleError "lambda expressions") node, context )
 
         _ ->
             ( [], context )
 
 
-validate : Bool -> (Node a -> Error {}) -> Node a -> List (Error {})
-validate isEnabled toError node =
-    if isEnabled then
+errorsForFeature : List String -> String -> Node Expression -> List (Error {})
+errorsForFeature forbidden feature node =
+    toErrorsIfForbidden (List.member feature forbidden) (ruleError feature) node
+
+
+errorsForLetIn : Bool -> Node Expression -> List (Error {})
+errorsForLetIn isEnabled =
+    toErrorsIfForbidden isEnabled (ruleError "let .. in ..")
+
+
+toErrorsIfForbidden : Bool -> (Node a -> Error {}) -> Node a -> List (Error {})
+toErrorsIfForbidden isForbidden toError node =
+    if isForbidden then
         [ toError node ]
 
     else
         []
 
 
-validateFeature : List String -> String -> Node Expression -> List (Error {})
-validateFeature forbidden feature node =
-    validate (List.member feature forbidden) (ruleErrors feature) node
-
-
-validateLetIn : Bool -> Node Expression -> List (Error {})
-validateLetIn enabled =
-    validate enabled (ruleErrors "let .. in ..")
-
-
-ruleErrors : String -> Node a -> Error {}
-ruleErrors feature node =
+ruleError : String -> Node a -> Error {}
+ruleError feature node =
     Rule.error
         { message = "The use of " ++ feature ++ " is forbidden!"
         , details =
