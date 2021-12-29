@@ -11,20 +11,37 @@ all =
         [ test "should report an error when the use of the underscore pattern covers to less cases" <|
             \() ->
                 source
-                    |> Review.Test.run (rule 3)
+                    |> Review.Test.run (rule 4)
                     |> Review.Test.expectErrors
-                        [ Review.Test.error
-                            { message = "To less covered cases by the underscore pattern, at lest 3 cases should be covered!"
-                            , details =
-                                [ "The underscore pattern should be used with care."
-                                , "You only covered 1 of 5 cases!"
-                                , "When you extend your custom type, then the new constructor will not be covered in the case expression."
-                                , "I suggest, when your custom type has less then 3 constructors, you should not use the underscore pattern"
-                                ]
-                            , under = "_"
-                            }
-                        ]
+                        [ Review.Test.error expectedError ]
+        , test "should not report an error when the underscore pattern covers enought cases" <|
+            \() ->
+                source
+                    |> Review.Test.run (rule 1)
+                    |> Review.Test.expectNoErrors
         ]
+
+
+expectedError : { message : String, details : List String, under : String }
+expectedError =
+    { message = "To less covered cases by the underscore pattern, at lest 4 cases should be covered!"
+    , details =
+        [ "The underscore pattern should be used with care."
+        , "You only covered 1 of 5 cases!"
+        , "When you extend your custom type, then the new constructor will not be covered in the case expression."
+        , "I suggest, when your custom type has less then 4 constructors, you should not use the underscore pattern"
+        ]
+    , under = under
+    }
+
+
+under : String
+under =
+    """case t of 
+        One ->
+            "First"
+        _ ->
+            "Rest\""""
 
 
 source : String
