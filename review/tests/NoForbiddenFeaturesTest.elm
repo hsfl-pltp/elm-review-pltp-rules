@@ -1,7 +1,7 @@
 module NoForbiddenFeaturesTest exposing (all)
 
 import NoForbiddenFeatures exposing (Config, rule)
-import Review.Test exposing (ExpectedError)
+import Review.Test
 import Test exposing (Test, describe, test)
 
 

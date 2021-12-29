@@ -1,14 +1,10 @@
 module UnderscorePattern exposing (..)
 
-
 type CustomType
     = First
     | Second
     | Result
     | Next
-    | Last
-    | Whatever
-
 
 foo : CustomType -> String
 foo t =
