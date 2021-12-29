@@ -127,9 +127,6 @@ isEqualPattern expression pattern =
                         Just expr ->
                             isEqualPattern expr pattern
 
-                Expression.OperatorApplication _ _ _ right ->
-                    isEqualPattern right pattern
-
                 _ ->
                     False
 

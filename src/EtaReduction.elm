@@ -5,5 +5,5 @@ incList list =
     List.map inc list
 
 inc : Int -> Int 
-inc i =
-    1 + i
+inc =
+    (\i -> 1 + i)
