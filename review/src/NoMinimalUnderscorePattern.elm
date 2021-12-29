@@ -11,10 +11,9 @@ import Elm.Syntax.Declaration as Declaration exposing (Declaration(..))
 import Elm.Syntax.Expression as Expression exposing (Expression(..))
 import Elm.Syntax.ModuleName exposing (ModuleName)
 import Elm.Syntax.Node as Node exposing (Node(..))
-import Elm.Syntax.Pattern as Pattern exposing (Pattern)
-import Elm.Syntax.Type exposing (Type, ValueConstructor)
+import Elm.Syntax.Pattern as Pattern
+import Elm.Syntax.Type exposing (ValueConstructor)
 import List.Extra
-import Review.ModuleNameLookupTable exposing (ModuleNameLookupTable)
 import Review.Rule as Rule exposing (Error, Rule)
 import Set exposing (Set)
 
@@ -65,7 +64,7 @@ rule threshold =
 
 
 
--- Module Visitor
+-- Module Visitorz
 
 
 moduleVisitor : Rule.ModuleRuleSchema schemaState ModuleContext -> Rule.ModuleRuleSchema { schemaState | hasAtLeastOneVisitor : () } ModuleContext
@@ -79,24 +78,23 @@ moduleVisitor schema =
 --  Declaration List Visitor
 
 
-declarationListVisitor : List (Node Declaration) -> ModuleContext -> ( List nothing, ModuleContext )
+declarationListVisitor : List (Node Declaration) -> ModuleContext -> ( List (Error {}), ModuleContext )
 declarationListVisitor declarations context =
-    ( [], { context | customTypes = Dict.insert [] (getCustomTypes declarations) context.customTypes } )
+    ( [], { context | customTypes = Dict.insert [] (customTypesFromDeclarations declarations) context.customTypes } )
 
 
-getCustomTypes : List (Node Declaration) -> Dict String (Set String)
-getCustomTypes declarations =
+customTypesFromDeclarations : List (Node Declaration) -> Dict String (Set String)
+customTypesFromDeclarations declarations =
     declarations
         |> List.filterMap customType
-        |> List.map (\type_ -> ( Node.value type_.name, typeConstructors type_.constructors ))
         |> Dict.fromList
 
 
-customType : Node Declaration -> Maybe Type
+customType : Node Declaration -> Maybe ( String, Set String )
 customType node =
     case Node.value node of
-        Declaration.CustomTypeDeclaration type_ ->
-            Just type_
+        Declaration.CustomTypeDeclaration { name, constructors } ->
+            Just ( Node.value name, typeConstructors constructors )
 
         _ ->
             Nothing
@@ -122,50 +120,44 @@ expressionEnterVisitor : Node Expression -> ModuleContext -> ( List (Error {}), 
 expressionEnterVisitor node context =
     case Node.value node of
         Expression.CaseExpression { cases } ->
-            case findAllPattern cases of
-                Nothing ->
-                    ( [], context )
-
-                Just ( pattern, _ ) ->
-                    ( checkCase pattern cases context, context )
+            ( errorsForCases node cases context, context )
 
         _ ->
             ( [], context )
 
 
-checkCase : Node Pattern -> List Expression.Case -> ModuleContext -> List (Error {})
-checkCase node cases { customTypes, threshold } =
-    case List.head cases of
-        Nothing ->
-            []
+errorsForCases : Node Expression -> Expression.Cases -> ModuleContext -> List (Error {})
+errorsForCases node cases context =
+    if hasAllPattern cases then
+        errorsForAllPattern node cases context
 
-        Just ( pattern, _ ) ->
-            case Node.value pattern of
-                Pattern.NamedPattern { moduleName, name } _ ->
-                    let
-                        all =
-                            findAllConstructors customTypes moduleName name
-
-                        used =
-                            findUsedConstructors cases
-                    in
-                    if inThreshold threshold used all then
-                        ruleErrors threshold node used all
-
-                    else
-                        []
-
-                _ ->
-                    []
+    else
+        []
 
 
-findAllPattern : List Expression.Case -> Maybe ( Node Pattern, Node Expression )
-findAllPattern cases =
-    List.Extra.find (\( pattern, _ ) -> isAllPattern pattern) cases
+errorsForAllPattern : Node Expression -> Expression.Cases -> ModuleContext -> List (Error {})
+errorsForAllPattern node cases context =
+    let
+        used =
+            usedConstructors cases
+
+        all =
+            allConstructors used context.customTypes
+    in
+    if (List.length all - List.length used) <= context.threshold then
+        [ ruleError context.threshold node used all ]
+
+    else
+        []
 
 
-isAllPattern : Node Pattern -> Bool
-isAllPattern pattern =
+hasAllPattern : List Expression.Case -> Bool
+hasAllPattern cases =
+    List.any isAllPattern cases
+
+
+isAllPattern : Expression.Case -> Bool
+isAllPattern ( pattern, _ ) =
     case Node.value pattern of
         Pattern.AllPattern ->
             True
@@ -174,52 +166,56 @@ isAllPattern pattern =
             False
 
 
-findUsedConstructors : List Expression.Case -> List String
-findUsedConstructors cases =
-    case cases of
+allConstructors : List ( ModuleName, String ) -> CustomTypes -> List String
+allConstructors used types =
+    case used of
         [] ->
             []
 
-        ( pattern, _ ) :: xs ->
-            case Node.value pattern of
-                Pattern.NamedPattern { name } _ ->
-                    name :: findUsedConstructors xs
-
-                _ ->
-                    findUsedConstructors xs
+        ( moduleName, name ) :: _ ->
+            allConstructorsByModuleName moduleName name types
 
 
-findAllConstructors : CustomTypes -> ModuleName -> String -> List String
-findAllConstructors customTypes moduleName constructor =
-    case Dict.get moduleName customTypes of
+allConstructorsByModuleName : ModuleName -> String -> CustomTypes -> List String
+allConstructorsByModuleName moduleName name types =
+    case Dict.get moduleName types of
         Nothing ->
             []
 
-        Just t ->
-            Maybe.withDefault [] (findTypeByConstructor t constructor)
+        Just moduleTypes ->
+            typeByConstructors name (Dict.values moduleTypes)
 
 
-findTypeByConstructor : Dict String (Set String) -> String -> Maybe (List String)
-findTypeByConstructor customTypes constructor =
-    customTypes
-        |> Dict.toList
-        |> List.map Tuple.second
-        |> List.Extra.find (\k -> List.member constructor (Set.toList k))
+typeByConstructors : String -> List (Set String) -> List String
+typeByConstructors name moduleTypes =
+    moduleTypes
+        |> List.Extra.find (Set.member name)
         |> Maybe.map Set.toList
+        |> Maybe.withDefault []
 
 
-inThreshold : Int -> List String -> List String -> Bool
-inThreshold threshold used all =
-    List.length all - threshold >= List.length used
+usedConstructors : List Expression.Case -> List ( ModuleName, String )
+usedConstructors =
+    List.filterMap namedPattern
+
+
+namedPattern : Expression.Case -> Maybe ( ModuleName, String )
+namedPattern ( pattern, _ ) =
+    case Node.value pattern of
+        Pattern.NamedPattern { moduleName, name } _ ->
+            Just ( moduleName, name )
+
+        _ ->
+            Nothing
 
 
 
 -- Rule Error
 
 
-ruleErrors : Int -> Node a -> List String -> List String -> List (Error {})
-ruleErrors threshold node used all =
-    [ Rule.error
+ruleError : Int -> Node a -> List ( ModuleName, String ) -> List String -> Error {}
+ruleError threshold node used all =
+    Rule.error
         { message = "To less covered cases by the underscore pattern, at lest " ++ String.fromInt threshold ++ " cases should be covered!"
         , details =
             [ "The underscore pattern should be used with care."
@@ -233,7 +229,6 @@ ruleErrors threshold node used all =
             ]
         }
         (Node.range node)
-    ]
 
 
 
@@ -251,10 +246,7 @@ type alias ProjectContext =
 
 
 type alias ModuleContext =
-    { lookupTable : ModuleNameLookupTable
-    , customTypes : CustomTypes
-    , threshold : Int
-    }
+    ProjectContext
 
 
 initProjectContext : Int -> ProjectContext
@@ -267,32 +259,30 @@ initProjectContext threshold =
 fromProjectToModule : Rule.ContextCreator ProjectContext ModuleContext
 fromProjectToModule =
     Rule.initContextCreator
-        (\lookupTable projectContext ->
-            { lookupTable = lookupTable
-            , customTypes = projectContext.customTypes
+        (\projectContext ->
+            { customTypes = projectContext.customTypes
             , threshold = projectContext.threshold
             }
         )
-        |> Rule.withModuleNameLookupTable
 
 
 fromModuleToProject : Rule.ContextCreator ModuleContext ProjectContext
 fromModuleToProject =
     Rule.initContextCreator
         (\metadata moduleContext ->
-            { customTypes = projectCustomTypes moduleContext.customTypes metadata
+            { customTypes = projectCustomTypes moduleContext.customTypes (Rule.moduleNameFromMetadata metadata)
             , threshold = moduleContext.threshold
             }
         )
         |> Rule.withMetadata
 
 
-projectCustomTypes : Dict ModuleName (Dict String (Set String)) -> Rule.Metadata -> Dict ModuleName (Dict String (Set String))
-projectCustomTypes c metadata =
-    c
+projectCustomTypes : CustomTypes -> ModuleName -> CustomTypes
+projectCustomTypes customTypes moduleName =
+    customTypes
         |> Dict.get []
         |> Maybe.withDefault Dict.empty
-        |> Dict.singleton (Rule.moduleNameFromMetadata metadata)
+        |> Dict.singleton moduleName
 
 
 foldProjectContexts : ProjectContext -> ProjectContext -> ProjectContext
