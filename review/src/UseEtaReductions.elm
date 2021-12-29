@@ -38,40 +38,62 @@ import Review.Rule as Rule exposing (Error, Rule)
 rule : Rule
 rule =
     Rule.newModuleRuleSchema "UseEtaReductions" ()
+        |> Rule.withSimpleExpressionVisitor expressionVisitor
         |> Rule.withSimpleDeclarationVisitor declarationVisitor
         |> Rule.fromModuleRuleSchema
+
+
+expressionVisitor : Node Expression -> List (Error {})
+expressionVisitor node =
+    case Node.value node of
+        Expression.LambdaExpression lambda ->
+            errorsForLambda node lambda
+
+        _ ->
+            []
 
 
 declarationVisitor : Node Declaration -> List (Error {})
 declarationVisitor node =
     case Node.value node of
         Declaration.FunctionDeclaration fn ->
-            validateFunction fn
+            errorsForFunction fn
 
         _ ->
             []
 
 
-validateFunction : Function -> List (Error {})
-validateFunction { declaration } =
-    validateFunctionImplementation declaration
+errorsForFunction : Function -> List (Error {})
+errorsForFunction { declaration } =
+    errorsFunctionImplementation declaration
 
 
-validateFunctionImplementation : Node FunctionImplementation -> List (Error {})
-validateFunctionImplementation (Node _ { expression, arguments }) =
+errorsFunctionImplementation : Node FunctionImplementation -> List (Error {})
+errorsFunctionImplementation (Node _ { expression, arguments }) =
     case Node.value expression of
         Expression.Application list ->
-            validateApplication (List.Extra.last list) (List.Extra.last arguments) (applicationErrors expression)
-
-        Expression.OperatorApplication _ _ _ right ->
-            validateApplication (Just right) (List.Extra.last arguments) (operatorErrors expression)
+            errorsForApplication expression (List.Extra.last list) (List.Extra.last arguments)
 
         _ ->
             []
 
 
-validateApplication : Maybe (Node Expression) -> Maybe (Node Pattern) -> List (Error {}) -> List (Error {})
-validateApplication expression argument error =
+errorsForLambda : Node Expression -> Expression.Lambda -> List (Error {})
+errorsForLambda node { expression, args } =
+    case List.Extra.last args of
+        Nothing ->
+            []
+
+        Just arg ->
+            if isEqualPattern expression arg then
+                [ lambdaError node ]
+
+            else
+                []
+
+
+errorsForApplication : Node Expression -> Maybe (Node Expression) -> Maybe (Node Pattern) -> List (Error {})
+errorsForApplication node expression argument =
     case expression of
         Nothing ->
             []
@@ -83,7 +105,7 @@ validateApplication expression argument error =
 
                 Just pattern ->
                     if isEqualPattern e pattern then
-                        error
+                        [ applicationError node ]
 
                     else
                         []
@@ -97,6 +119,17 @@ isEqualPattern expression pattern =
                 Expression.FunctionOrValue [] val ->
                     var == val
 
+                Expression.Application expressions ->
+                    case List.Extra.last expressions of
+                        Nothing ->
+                            False
+
+                        Just expr ->
+                            isEqualPattern expr pattern
+
+                Expression.OperatorApplication _ _ _ right ->
+                    isEqualPattern right pattern
+
                 _ ->
                     False
 
@@ -104,9 +137,21 @@ isEqualPattern expression pattern =
             False
 
 
-applicationErrors : Node Expression -> List (Error {})
-applicationErrors node =
-    [ Rule.error
+lambdaError : Node Expression -> Error {}
+lambdaError node =
+    Rule.error
+        { message = "Possible eta reduction for labmda detected."
+        , details =
+            [ "When the last argument of a lambda is the last applied to your epxression, then you should remove both"
+            , "Iamgine you have a lambda like \"(\\e -> inc e\", then you can just write \"inc\""
+            ]
+        }
+        (Node.range node)
+
+
+applicationError : Node Expression -> Error {}
+applicationError node =
+    Rule.error
         { message = "Possible eta reduction detected."
         , details =
             [ "When the last argument of a function is the last applied to your expression, then you should remove both"
@@ -115,17 +160,3 @@ applicationErrors node =
             ]
         }
         (Node.range node)
-    ]
-
-
-operatorErrors : Node Expression -> List (Error {})
-operatorErrors node =
-    [ Rule.error
-        { message = "Possible eta reduction for operator detected."
-        , details =
-            [ "When the last argument of a function is the last applied to your expression then you should remove both"
-            , "This operator can be written as infix, for example \" addOne = (+) 1 \""
-            ]
-        }
-        (Node.range node)
-    ]
