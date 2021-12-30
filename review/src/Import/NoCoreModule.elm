@@ -1,4 +1,4 @@
-module NoCoreModuleImports exposing (rule)
+module Import.NoCoreModule exposing (rule, importVisitor)
 
 {-| Forbids the import of core modules, which are default imports.
 

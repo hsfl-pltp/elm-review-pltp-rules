@@ -1,4 +1,4 @@
-module NoUnqualifiedImports exposing (rule)
+module Import.NoUnqualified exposing (rule, importVisitor)
 
 {-| Forbids the use of unqualified imports, expect of a white list.
 
@@ -38,7 +38,7 @@ import Review.Rule as Rule exposing (Error, Rule)
 rule : List String -> Rule
 rule whiteList =
     Rule.newModuleRuleSchema "NoUnqualifiedImports" ()
-        |> Rule.withSimpleImportVisitor (\node -> importVisitor whiteList node)
+        |> Rule.withSimpleImportVisitor (importVisitor whiteList)
         |> Rule.fromModuleRuleSchema
 
 
