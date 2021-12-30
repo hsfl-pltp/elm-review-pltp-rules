@@ -6,7 +6,6 @@ Please do not change anything here!
 
 -}
 
-import NoCoreModuleImports
 import NoDebug.Log
 import NoDebug.TodoOrToString
 import NoExposingEverything
@@ -18,7 +17,7 @@ import NoMinimalRecordDestructing
 import NoMinimalUnderscorePattern
 import NoMissingTypeAnnotation
 import NoUnnecessaryIf
-import NoUnqualifiedImports
+import NoInvalidImport
 import NoUnused.CustomTypeConstructors
 import NoUnused.Dependencies
 import NoUnused.Exports
@@ -36,8 +35,7 @@ import UseLogicalOperators
 
 config : List Rule
 config =
-    [ NoCoreModuleImports.rule
-    , NoDebug.Log.rule
+    [ NoDebug.Log.rule
     , NoDebug.TodoOrToString.rule
     , NoExposingEverything.rule
     , NoForbiddenFeatures.rule
@@ -54,7 +52,7 @@ config =
     , NoMinimalUnderscorePattern.rule 4
     , NoMissingTypeAnnotation.rule
     , NoUnnecessaryIf.rule
-    , NoUnqualifiedImports.rule
+    , NoInvalidImport.rule
         [ "Html"
         , "Html.Attributes"
         , "Html.Events"
