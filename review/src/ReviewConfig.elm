@@ -6,6 +6,7 @@ Please do not change anything here!
 
 -}
 
+import NoBooleanComparison
 import NoDebug.Log
 import NoDebug.TodoOrToString
 import NoExposingEverything
@@ -13,11 +14,11 @@ import NoForbiddenFeatures
 import NoIfCascade
 import NoIfNegations
 import NoImportingEverything
+import NoInvalidImport
 import NoMinimalRecordDestructing
 import NoMinimalUnderscorePattern
 import NoMissingTypeAnnotation
 import NoUnnecessaryIf
-import NoInvalidImport
 import NoUnused.CustomTypeConstructors
 import NoUnused.Dependencies
 import NoUnused.Exports
@@ -35,7 +36,8 @@ import UseLogicalOperators
 
 config : List Rule
 config =
-    [ NoDebug.Log.rule
+    [ NoBooleanComparison.rule
+    , NoDebug.Log.rule
     , NoDebug.TodoOrToString.rule
     , NoExposingEverything.rule
     , NoForbiddenFeatures.rule
