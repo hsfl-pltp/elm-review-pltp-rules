@@ -95,5 +95,4 @@ foo t =
         Two ->
             f 2
         Three -> 
-            f 3
-"""
+            f 3"""
