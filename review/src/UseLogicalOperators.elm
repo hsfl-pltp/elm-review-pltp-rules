@@ -8,6 +8,7 @@ module UseLogicalOperators exposing (rule)
 
 import Elm.Syntax.Expression as Expression exposing (Expression)
 import Elm.Syntax.Node as Node exposing (Node(..))
+import Helper
 import Review.Rule as Rule exposing (Error, Rule)
 
 
@@ -70,7 +71,7 @@ errorsForIf parent left right =
 
 errorsForAnd : Node Expression -> Node Expression -> Node Expression -> List (Error {})
 errorsForAnd node left right =
-    if not (isBooleanExpression left) && isBooleanExpression right then
+    if not (Helper.isBoolExpression left) && Helper.isBoolExpression right then
         [ andError node ]
 
     else
@@ -79,21 +80,11 @@ errorsForAnd node left right =
 
 errorsForOr : Node Expression -> Node Expression -> Node Expression -> List (Error {})
 errorsForOr node left right =
-    if isBooleanExpression left && not (isBooleanExpression right) then
+    if Helper.isBoolExpression left && not (Helper.isBoolExpression right) then
         [ orError node ]
 
     else
         []
-
-
-isBooleanExpression : Node Expression -> Bool
-isBooleanExpression (Node _ node) =
-    case node of
-        Expression.FunctionOrValue [] value ->
-            value == "True" || value == "False"
-
-        _ ->
-            False
 
 
 andError : Node Expression -> Error {}
