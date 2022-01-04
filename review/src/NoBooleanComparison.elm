@@ -8,6 +8,7 @@ module NoBooleanComparison exposing (rule)
 
 import Elm.Syntax.Expression as Expression exposing (Expression)
 import Elm.Syntax.Node as Node exposing (Node)
+import Helper
 import Review.Rule as Rule exposing (Error, Rule)
 
 
@@ -61,26 +62,14 @@ expressionVisitor node =
 
 errorsForOperator : Node Expression -> Node Expression -> Node Expression -> List (Error {})
 errorsForOperator node left right =
-    if
-        matchExpression left "True"
-            || matchExpression left "False"
-            || matchExpression right "True"
-            || matchExpression right "False"
-    then
-        [ruleError node]
+    if Helper.isBoolExpression left && not (Helper.isBoolExpression right) then
+        [ ruleError node ]
+
+    else if not (Helper.isBoolExpression left) && Helper.isBoolExpression right then
+        [ ruleError node ]
 
     else
         []
-
-
-matchExpression : Node Expression -> String -> Bool
-matchExpression node expected =
-    case Node.value node of
-        Expression.FunctionOrValue [] value ->
-            value == expected
-
-        _ ->
-            False
 
 
 ruleError : Node Expression -> Error {}
