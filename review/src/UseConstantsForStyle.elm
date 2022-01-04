@@ -9,7 +9,7 @@ module UseConstantsForStyle exposing (rule)
 import Elm.Syntax.Expression as Expression exposing (Expression)
 import Elm.Syntax.ModuleName exposing (ModuleName)
 import Elm.Syntax.Node as Node exposing (Node)
-import Helpers
+import Helper
 import List.Extra
 import Review.ModuleNameLookupTable as ModuleNameLookupTable exposing (ModuleNameLookupTable)
 import Review.Rule as Rule exposing (Error, Rule)
@@ -224,7 +224,7 @@ isStyleAttribute : ModuleNameLookupTable -> Node Expression -> Bool
 isStyleAttribute lookupTable node =
     case Node.value node of
         Expression.FunctionOrValue _ func ->
-            Helpers.functionName node lookupTable func == "Html.Attributes.style"
+            Helper.functionName node lookupTable func == "Html.Attributes.style"
 
         Expression.Application (x :: _) ->
             isStyleAttribute lookupTable x

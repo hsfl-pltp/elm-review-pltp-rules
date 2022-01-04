@@ -13,7 +13,7 @@ import Elm.Syntax.Declaration as Declaration exposing (Declaration)
 import Elm.Syntax.Expression as Expression exposing (Expression)
 import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Type exposing (ValueConstructor)
-import Helpers
+import Helper
 import Review.ModuleNameLookupTable exposing (ModuleNameLookupTable)
 import Review.Rule as Rule exposing (Error, Rule)
 
@@ -135,7 +135,7 @@ expressionVisitor node context =
             ( errorsForFeature context.config.operators operator node, context )
 
         Expression.FunctionOrValue _ func ->
-            ( errorsForFeature context.config.functions (Helpers.functionName node context.lookupTable func) node, context )
+            ( errorsForFeature context.config.functions (Helper.functionName node context.lookupTable func) node, context )
 
         Expression.LetExpression _ ->
             ( errorsForLetIn context.config.letIn node, context )
