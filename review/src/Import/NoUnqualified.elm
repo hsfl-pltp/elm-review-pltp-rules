@@ -1,4 +1,7 @@
-module Import.NoUnqualified exposing (rule, importVisitor)
+module Import.NoUnqualified exposing
+    ( rule
+    , importVisitor
+    )
 
 {-| Forbids the use of unqualified imports, expect of a white list.
 
@@ -6,8 +9,9 @@ module Import.NoUnqualified exposing (rule, importVisitor)
 
 -}
 
-import Elm.Syntax.Exposing exposing (Exposing(..), TopLevelExpose(..))
+import Elm.Syntax.Exposing as Exposing exposing (Exposing(..), TopLevelExpose(..))
 import Elm.Syntax.Import exposing (Import)
+import Elm.Syntax.ModuleName exposing (ModuleName)
 import Elm.Syntax.Node as Node exposing (Node(..))
 import Review.Rule as Rule exposing (Error, Rule)
 
@@ -43,38 +47,28 @@ rule whiteList =
 
 
 importVisitor : List String -> Node Import -> List (Error {})
-importVisitor whiteList (Node _ importValue) =
-    if List.member (toModuleName importValue) whiteList then
+importVisitor whiteList (Node _ { moduleName, exposingList }) =
+    if isWhiteListModule moduleName whiteList then
         []
 
     else
-        errorsForImport importValue
+        errorsForExposing exposingList
 
 
-toModuleName : Import -> String
-toModuleName i =
-    String.join "." (Node.value i.moduleName)
+isWhiteListModule : Node ModuleName -> List String -> Bool
+isWhiteListModule moduleName =
+    List.member (toModuleName (Node.value moduleName))
 
 
-errorsForImport : Import -> List (Error {})
-errorsForImport imp =
-    case exposingFromImport imp of
-        Nothing ->
-            []
-
-        Just exp ->
-            errorsForExposing exp
+toModuleName : ModuleName -> String
+toModuleName =
+    String.join "."
 
 
-exposingFromImport : Import -> Maybe Exposing
-exposingFromImport { exposingList } =
-    Maybe.map Node.value exposingList
-
-
-errorsForExposing : Exposing -> List (Error {})
-errorsForExposing exp =
-    case exp of
-        Explicit list ->
+errorsForExposing : Maybe (Node Exposing) -> List (Error {})
+errorsForExposing maybeExposing =
+    case maybeExposing of
+        Just (Node _ (Exposing.Explicit list)) ->
             List.concatMap errorsForTopLevelExpose list
 
         _ ->

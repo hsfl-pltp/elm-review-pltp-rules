@@ -1,4 +1,7 @@
-module Import.NoCoreModule exposing (rule, importVisitor)
+module Import.NoCoreModule exposing
+    ( rule
+    , importVisitor
+    )
 
 {-| Forbids the import of core modules, which are default imports.
 
@@ -7,7 +10,10 @@ module Import.NoCoreModule exposing (rule, importVisitor)
 -}
 
 import Elm.Syntax.Import exposing (Import)
+import Elm.Syntax.ModuleName exposing (ModuleName)
 import Elm.Syntax.Node as Node exposing (Node(..))
+import Elm.Syntax.Range exposing (Range)
+import Helper
 import Review.Rule as Rule exposing (Error, Rule)
 
 
@@ -55,26 +61,21 @@ coreModules =
 
 
 importVisitor : Node Import -> List (Error {})
-importVisitor node =
-    errorsForImport node (toModuleName node)
+importVisitor (Node _ { moduleName }) =
+    errorsForModuleName moduleName
 
 
-errorsForImport : Node Import -> String -> List (Error {})
-errorsForImport node moduleName =
-    if List.member moduleName coreModules then
-        [ importError node moduleName ]
+errorsForModuleName : Node ModuleName -> List (Error {})
+errorsForModuleName (Node range moduleName) =
+    if List.member (Helper.toModuleName moduleName) coreModules then
+        [ importError range (Helper.toModuleName moduleName) ]
 
     else
         []
 
 
-toModuleName : Node Import -> String
-toModuleName (Node _ { moduleName }) =
-    String.join "." (Node.value moduleName)
-
-
-importError : Node Import -> String -> Error {}
-importError node name =
+importError : Range -> String -> Error {}
+importError range name =
     Rule.error
         { message = "Import of core module found : " ++ name
         , details =
@@ -82,4 +83,4 @@ importError node name =
             , "For a list of all default imports take a look at https://package.elm-lang.org/packages/elm/core/latest/."
             ]
         }
-        (Node.range node)
+        range
