@@ -20,33 +20,32 @@ import Review.Rule as Rule exposing (Error, Rule)
 
 ## Fail
 
-foo : Bool -> Bool
-foo bar =
-if bar then
-    True
+    foo : Bool -> Bool
+    foo bar =
+        if bar then
+            True
 
-    else
-        False
+        else
+            False
 
-foo2 : Bool -> Bool
-foo2 bar =
-if bar then
-    False
+    foo2 : Bool -> Bool
+    foo2 bar =
+        if bar then
+            False
 
-    else
-        True
+        else
+            True
 
 
 ## Success
 
-foo : Bool -> Bool
-foo bar =
+    foo : Bool -> Bool
+    foo bar =
+        bar
 
-    bar
-
-foo2 : Bool -> Bool
-foo2 bar =
-    not bar
+    foo2 : Bool -> Bool
+    foo2 bar =
+        not bar
 
 -}
 rule : Rule
