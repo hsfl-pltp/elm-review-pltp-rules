@@ -80,6 +80,16 @@ sourceCase =
 f : Int -> Int
 f i = i + 1
 
+type Action =
+    Start Int
+
+-- Should not be marked
+destructAction : Action -> Int 
+destructAction action = 
+    case action of 
+        Start x ->
+            x
+
 
 type CustomType
     = One

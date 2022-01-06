@@ -55,7 +55,11 @@ expressionVisitor node =
             errorsForIf node left right
 
         Expression.CaseExpression { cases } ->
-            errorsForCase node cases
+            if List.length cases > 1 then
+                errorsForCase node cases
+
+            else
+                []
 
         _ ->
             []
