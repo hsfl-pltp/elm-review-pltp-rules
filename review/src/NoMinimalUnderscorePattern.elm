@@ -160,6 +160,9 @@ validNamedPattern maybe =
         Just [ "Maybe" ] ->
             False
 
+        Just [ "Result" ] ->
+            False
+
         _ ->
             True
 

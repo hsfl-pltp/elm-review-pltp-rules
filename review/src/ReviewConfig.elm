@@ -15,7 +15,7 @@ import NoIfCascade
 import NoIfNegations
 import NoImportingEverything
 import NoInvalidImport
-import NoMinimalRecordDestructing
+import NoMinimalRecordAccess
 import NoMinimalUnderscorePattern
 import NoMissingTypeAnnotation
 import NoUnnecessaryIf
@@ -50,7 +50,7 @@ config =
     , NoIfCascade.rule
     , NoIfNegations.rule
     , NoImportingEverything.rule []
-    , NoMinimalRecordDestructing.rule 1
+    , NoMinimalRecordAccess.rule 2
     , NoMinimalUnderscorePattern.rule 4
     , NoMissingTypeAnnotation.rule
     , NoUnnecessaryIf.rule

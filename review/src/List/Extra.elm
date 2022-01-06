@@ -1,4 +1,4 @@
-module List.Extra exposing (combinations, find, last, some)
+module List.Extra exposing (combinations, find, last, some, sumBy, unique)
 
 
 find : (a -> Bool) -> List a -> Maybe a
@@ -49,3 +49,18 @@ combinations listA listB =
 
         x :: xs ->
             List.map (\y -> ( x, y )) listB ++ combinations xs listB
+
+
+sumBy : (a -> Int) -> List a -> Int
+sumBy pred =
+    List.foldl (\e acc -> pred e + acc) 0
+
+
+unique : List a -> List a
+unique list =
+    case list of
+        [] ->
+            []
+
+        x :: xs ->
+            x :: unique (List.filter ((/=) x) xs)
