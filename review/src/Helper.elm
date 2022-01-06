@@ -21,9 +21,9 @@ toModuleName =
     String.join "."
 
 
-isBoolExpression : Node Expression -> Bool
-isBoolExpression (Node _ node) =
-    case node of
+isBoolExpression : Expression -> Bool
+isBoolExpression expr =
+    case expr of
         Expression.FunctionOrValue [] value ->
             value == "True" || value == "False"
 
