@@ -64,24 +64,24 @@ expressionVisitor node =
 equal : Node Expression -> Node Expression -> Bool
 equal left right =
     case ( Node.value left, Node.value right ) of
-        ( Expression.FunctionOrValue _ leftFunc, Expression.FunctionOrValue _ rightFunc ) ->
-            leftFunc == rightFunc
+        ( Expression.FunctionOrValue leftModuleName leftFunc, Expression.FunctionOrValue rightModuleName rightFunc ) ->
+            leftModuleName == rightModuleName && leftFunc == rightFunc
 
         ( Expression.Application leftNodes, Expression.Application rightNodes ) ->
-            oneDiffer leftNodes rightNodes
+            oneDiff leftNodes rightNodes
 
         ( Expression.IfBlock leftCond leftThen leftElse, Expression.IfBlock rightCond rightThen rightElse ) ->
-            oneDiffer [leftCond, leftThen, leftElse] [rightCond, rightThen, rightElse]
+            oneDiff [ leftCond, leftThen, leftElse ] [ rightCond, rightThen, rightElse ]
 
         ( Expression.CaseExpression leftBlock, Expression.CaseExpression rightBlock ) ->
-            oneDiffer (List.map Tuple.second leftBlock.cases) (List.map Tuple.second rightBlock.cases)
+            oneDiff (List.map Tuple.second leftBlock.cases) (List.map Tuple.second rightBlock.cases)
 
         _ ->
             False
 
 
-oneDiffer : List (Node Expression) -> List (Node Expression) -> Bool
-oneDiffer leftNodes rightNodes =
+oneDiff : List (Node Expression) -> List (Node Expression) -> Bool
+oneDiff leftNodes rightNodes =
     case List.filter not (List.map2 equal leftNodes rightNodes) of
         [ _ ] ->
             True
@@ -90,11 +90,11 @@ oneDiffer leftNodes rightNodes =
             False
 
 
-commonContext : Node Expression -> Node Expression -> Bool
-commonContext (Node _ left) (Node _ right) =
+haveCommonContext : Node Expression -> Node Expression -> Bool
+haveCommonContext (Node _ left) (Node _ right) =
     case ( left, right ) of
         ( Expression.Application leftNodes, Expression.Application rightNodes ) ->
-            oneDiffer leftNodes rightNodes
+            oneDiff leftNodes rightNodes
 
         _ ->
             False
@@ -102,7 +102,7 @@ commonContext (Node _ left) (Node _ right) =
 
 errorsForIf : Node Expression -> Node Expression -> Node Expression -> List (Error {})
 errorsForIf node left right =
-    if commonContext left right then
+    if haveCommonContext left right then
         [ ifError node ]
 
     else
@@ -115,7 +115,7 @@ errorsForCase node cases =
         expressions =
             List.map Tuple.second cases
     in
-    if List.all (\( a, b ) -> commonContext a b) (List.Extra.combinations expressions expressions) then
+    if List.all (\( a, b ) -> haveCommonContext a b) (List.Extra.combinations expressions expressions) then
         [ caseErrors node ]
 
     else
