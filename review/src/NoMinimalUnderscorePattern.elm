@@ -11,9 +11,10 @@ import Elm.Syntax.Declaration as Declaration exposing (Declaration(..))
 import Elm.Syntax.Expression as Expression exposing (Expression(..))
 import Elm.Syntax.ModuleName exposing (ModuleName)
 import Elm.Syntax.Node as Node exposing (Node(..))
-import Elm.Syntax.Pattern as Pattern
+import Elm.Syntax.Pattern as Pattern exposing (Pattern)
 import Elm.Syntax.Type exposing (ValueConstructor)
 import List.Extra
+import Review.ModuleNameLookupTable as ModuleNameLookupTable exposing (ModuleNameLookupTable)
 import Review.Rule as Rule exposing (Error, Rule)
 import Set exposing (Set)
 
@@ -21,7 +22,7 @@ import Set exposing (Set)
 {-| Reports the use of the underscore pattern, with less then 5 patterns covered.
 
     config =
-        [ NoMinimalUnderscorePattern.rule 5
+        [ NoMinimalUnderscorePattern.rule 2
         ]
 
 
@@ -120,26 +121,54 @@ expressionEnterVisitor : Node Expression -> ModuleContext -> ( List (Error {}), 
 expressionEnterVisitor node context =
     case Node.value node of
         Expression.CaseExpression { cases } ->
-            ( errorsForCases node cases context, context )
+            ( errorsForCases node (List.map Tuple.first cases) context, context )
 
         _ ->
             ( [], context )
 
 
-errorsForCases : Node Expression -> Expression.Cases -> ModuleContext -> List (Error {})
-errorsForCases node cases context =
-    if hasAllPattern cases then
-        errorsForAllPattern node cases context
+errorsForCases : Node Expression -> List (Node Pattern) -> ModuleContext -> List (Error {})
+errorsForCases node patterns context =
+    if allValidPattern context.lookupTable patterns then
+        errorsForPattern node patterns context
 
     else
         []
 
 
-errorsForAllPattern : Node Expression -> Expression.Cases -> ModuleContext -> List (Error {})
-errorsForAllPattern node cases context =
+allValidPattern : ModuleNameLookupTable -> List (Node Pattern) -> Bool
+allValidPattern lookupTable patterns =
+    List.all (validPattern lookupTable) patterns
+
+
+validPattern : ModuleNameLookupTable -> Node Pattern -> Bool
+validPattern lookupTable node =
+    case Node.value node of
+        Pattern.AllPattern ->
+            True
+
+        Pattern.NamedPattern _ _ ->
+            validNamedPattern (ModuleNameLookupTable.moduleNameFor lookupTable node)
+
+        _ ->
+            False
+
+
+validNamedPattern : Maybe ModuleName -> Bool
+validNamedPattern maybe =
+    case maybe of
+        Just [ "Maybe" ] ->
+            False
+
+        _ ->
+            True
+
+
+errorsForPattern : Node Expression -> List (Node Pattern) -> ModuleContext -> List (Error {})
+errorsForPattern node patterns context =
     let
         used =
-            usedConstructors cases
+            usedConstructors patterns
 
         all =
             allConstructors used context.customTypes
@@ -149,21 +178,6 @@ errorsForAllPattern node cases context =
 
     else
         []
-
-
-hasAllPattern : List Expression.Case -> Bool
-hasAllPattern cases =
-    List.any isAllPattern cases
-
-
-isAllPattern : Expression.Case -> Bool
-isAllPattern ( pattern, _ ) =
-    case Node.value pattern of
-        Pattern.AllPattern ->
-            True
-
-        _ ->
-            False
 
 
 allConstructors : List ( ModuleName, String ) -> CustomTypes -> List String
@@ -179,11 +193,11 @@ allConstructors used types =
 allConstructorsByModuleName : ModuleName -> String -> CustomTypes -> List String
 allConstructorsByModuleName moduleName name types =
     case Dict.get moduleName types of
-        Nothing ->
-            []
-
         Just moduleTypes ->
             typeByConstructors name (Dict.values moduleTypes)
+
+        Nothing ->
+            []
 
 
 typeByConstructors : String -> List (Set String) -> List String
@@ -194,14 +208,17 @@ typeByConstructors name moduleTypes =
         |> Maybe.withDefault []
 
 
-usedConstructors : List Expression.Case -> List ( ModuleName, String )
-usedConstructors =
-    List.filterMap namedPattern
+usedConstructors : List (Node Pattern) -> List ( ModuleName, String )
+usedConstructors patterns =
+    patterns
+        |> List.filterMap namedPattern
+        |> Set.fromList
+        |> Set.toList
 
 
-namedPattern : Expression.Case -> Maybe ( ModuleName, String )
-namedPattern ( pattern, _ ) =
-    case Node.value pattern of
+namedPattern : Node Pattern -> Maybe ( ModuleName, String )
+namedPattern node =
+    case Node.value node of
         Pattern.NamedPattern { moduleName, name } _ ->
             Just ( moduleName, name )
 
@@ -246,7 +263,10 @@ type alias ProjectContext =
 
 
 type alias ModuleContext =
-    ProjectContext
+    { customTypes : CustomTypes
+    , threshold : Int
+    , lookupTable : ModuleNameLookupTable
+    }
 
 
 initProjectContext : Int -> ProjectContext
@@ -259,11 +279,13 @@ initProjectContext threshold =
 fromProjectToModule : Rule.ContextCreator ProjectContext ModuleContext
 fromProjectToModule =
     Rule.initContextCreator
-        (\projectContext ->
+        (\lookupTable projectContext ->
             { customTypes = projectContext.customTypes
             , threshold = projectContext.threshold
+            , lookupTable = lookupTable
             }
         )
+        |> Rule.withModuleNameLookupTable
 
 
 fromModuleToProject : Rule.ContextCreator ModuleContext ProjectContext

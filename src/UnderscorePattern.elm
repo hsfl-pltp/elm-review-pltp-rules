@@ -1,10 +1,12 @@
 module UnderscorePattern exposing (..)
 
+
 type CustomType
     = First
     | Second
     | Result
     | Next
+
 
 foo : CustomType -> String
 foo t =
@@ -14,3 +16,18 @@ foo t =
 
         _ ->
             "Rest"
+
+
+type Key
+    = Up
+    | Down
+
+
+toKey : String -> Key
+toKey string =
+    case string of
+        "Up" ->
+            Up
+
+        _ ->
+            Down
