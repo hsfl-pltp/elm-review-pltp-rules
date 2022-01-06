@@ -58,30 +58,19 @@ expressionVisitor : Node Expression -> List (Error {})
 expressionVisitor node =
     case Node.value node of
         Expression.IfBlock _ left right ->
-            errorsForIf node left right
+            errorsForIf node (Node.value left) (Node.value right)
 
         _ ->
             []
 
 
-errorsForIf : Node Expression -> Node Expression -> Node Expression -> List (Error {})
+errorsForIf : Node Expression -> Expression -> Expression -> List (Error {})
 errorsForIf parent left right =
-    errorsForAnd parent left right ++ errorsForOr parent left right
-
-
-errorsForAnd : Node Expression -> Node Expression -> Node Expression -> List (Error {})
-errorsForAnd node left right =
     if not (Helper.isBoolExpression left) && Helper.isBoolExpression right then
-        [ andError node ]
+        [ andError parent ]
 
-    else
-        []
-
-
-errorsForOr : Node Expression -> Node Expression -> Node Expression -> List (Error {})
-errorsForOr node left right =
-    if Helper.isBoolExpression left && not (Helper.isBoolExpression right) then
-        [ orError node ]
+    else if Helper.isBoolExpression left && not (Helper.isBoolExpression right) then
+        [ orError parent ]
 
     else
         []

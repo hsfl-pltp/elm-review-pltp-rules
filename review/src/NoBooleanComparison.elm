@@ -51,16 +51,16 @@ expressionVisitor : Node Expression -> List (Error {})
 expressionVisitor node =
     case Node.value node of
         Expression.OperatorApplication "==" _ left right ->
-            errorsForOperator node left right
+            errorsForOperator node (Node.value left) (Node.value right)
 
         Expression.OperatorApplication "/=" _ left right ->
-            errorsForOperator node left right
+            errorsForOperator node (Node.value left) (Node.value right)
 
         _ ->
             []
 
 
-errorsForOperator : Node Expression -> Node Expression -> Node Expression -> List (Error {})
+errorsForOperator : Node Expression -> Expression -> Expression -> List (Error {})
 errorsForOperator node left right =
     if Helper.isBoolExpression left && not (Helper.isBoolExpression right) then
         [ ruleError node ]
