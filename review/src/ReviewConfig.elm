@@ -18,6 +18,7 @@ import NoInvalidImport
 import NoMinimalRecordAccess
 import NoMinimalUnderscorePattern
 import NoMissingTypeAnnotation
+import NoSinglePatternCase
 import NoUnnecessaryIf
 import NoUnused.CustomTypeConstructors
 import NoUnused.Dependencies
@@ -53,6 +54,7 @@ config =
     , NoMinimalRecordAccess.rule 2
     , NoMinimalUnderscorePattern.rule 4
     , NoMissingTypeAnnotation.rule
+    , NoSinglePatternCase.rule
     , NoUnnecessaryIf.rule
     , NoInvalidImport.rule
         [ "Html"
