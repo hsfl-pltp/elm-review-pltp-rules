@@ -41,14 +41,14 @@ some pred list =
     List.foldl p 0 list >= 2
 
 
-combinations : List a -> List b -> List ( a, b )
-combinations listA listB =
-    case listA of
+combinations : List a ->  List ( a, a )
+combinations list =
+    case list of
         [] ->
             []
 
         x :: xs ->
-            List.map (\y -> ( x, y )) listB ++ combinations xs listB
+            List.map (\y -> ( x, y )) xs ++ combinations xs
 
 
 sumBy : (a -> Int) -> List a -> Int
