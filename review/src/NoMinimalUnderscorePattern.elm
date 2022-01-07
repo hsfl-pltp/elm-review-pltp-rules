@@ -129,7 +129,7 @@ expressionEnterVisitor node context =
 
 errorsForCases : Node Expression -> List (Node Pattern) -> ModuleContext -> List (Error {})
 errorsForCases node patterns context =
-    if allValidPattern context.lookupTable patterns then
+    if List.any isAllPattern patterns && allValidPattern context.lookupTable patterns then
         errorsForPattern node patterns context
 
     else
@@ -139,6 +139,16 @@ errorsForCases node patterns context =
 allValidPattern : ModuleNameLookupTable -> List (Node Pattern) -> Bool
 allValidPattern lookupTable patterns =
     List.all (validPattern lookupTable) patterns
+
+
+isAllPattern : Node Pattern -> Bool
+isAllPattern (Node _ pattern) =
+    case pattern of
+        Pattern.AllPattern ->
+            True
+
+        _ ->
+            False
 
 
 validPattern : ModuleNameLookupTable -> Node Pattern -> Bool

@@ -8,20 +8,22 @@ import UseCommutingConversions exposing (rule)
 all : Test
 all =
     describe "UseCommutingConversions"
-        [ test "should report an error for commuting conversions in if statement" <|
-            \() ->
-                sourceIf
-                    |> Review.Test.run rule
-                    |> Review.Test.expectErrors
-                        [ Review.Test.error
-                            { message = "Possible commuting conversion for if detected"
-                            , details =
-                                [ "An expression in the form \"if a then f b else f c\" should be written as \"f(if a then b else c)\""
-                                ]
-                            , under = underIf
-                            }
-                        ]
-        , test "Should report an error for commuting conversions in case" <|
+        [ 
+        --     test "should report an error for commuting conversions in if statement" <|
+        --     \() ->
+        --         sourceIf
+        --             |> Review.Test.run rule
+        --             |> Review.Test.expectErrors
+        --                 [ Review.Test.error
+        --                     { message = "Possible commuting conversion for if detected"
+        --                     , details =
+        --                         [ "An expression in the form \"if a then f b else f c\" should be written as \"f(if a then b else c)\""
+        --                         ]
+        --                     , under = underIf
+        --                     }
+        --                 ]
+        -- , 
+        test "Should report an error for commuting conversions in case" <|
             \() ->
                 sourceCase
                     |> Review.Test.run rule
@@ -63,13 +65,18 @@ foo b =
 
 underCase : String
 underCase =
-    """case t of 
-        One ->
-            f 1
-        Two ->
-            f 2
-        Three -> 
-            f 3"""
+    """case direction of
+                Up ->
+                    moveSnake Up model
+
+                Down ->
+                    moveSnake Down model
+
+                Left ->
+                    moveSnake Left model
+
+                Right ->
+                    moveSnake Right model"""
 
 
 sourceCase : String
@@ -96,13 +103,20 @@ type CustomType
     | Two 
     | Three
 
+update : Msg -> Model -> Model
+update msg model =
+    case msg of
+        Msg direction ->
+            case direction of
+                Up ->
+                    moveSnake Up model
 
-foo : CustomType -> String 
-foo t =
-    case t of 
-        One ->
-            f 1
-        Two ->
-            f 2
-        Three -> 
-            f 3"""
+                Down ->
+                    moveSnake Down model
+
+                Left ->
+                    moveSnake Left model
+
+                Right ->
+                    moveSnake Right model
+"""
