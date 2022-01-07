@@ -32,6 +32,7 @@ import UseCamelCase
 import UseCommutingConversions
 import UseConstantsForStyle
 import UseEtaReductions
+import UseNamingConventions
 import UseLogicalOperators
 
 
@@ -74,5 +75,6 @@ config =
     , UseConstantsForStyle.rule
     , UseCamelCase.rule UseCamelCase.default
     , UseEtaReductions.rule
+    , UseNamingConventions.rule
     , UseLogicalOperators.rule
     ]

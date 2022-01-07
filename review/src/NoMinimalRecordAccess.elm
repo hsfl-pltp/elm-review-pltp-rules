@@ -12,7 +12,6 @@ import Elm.Syntax.Node as Node exposing (Node(..))
 import Elm.Syntax.Pattern as Pattern exposing (Pattern)
 import List.Extra
 import Review.Rule as Rule exposing (Error, Rule)
-import Set
 
 
 {-| Reports the use of records , where only a few components are used.
