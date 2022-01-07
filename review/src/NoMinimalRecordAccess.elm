@@ -107,6 +107,8 @@ accessed node =
         Expression.CaseExpression { expression, cases } ->
             List.concatMap used (expression :: List.map Tuple.second cases)
 
+        Expression.ListExpr expressions ->
+            List.concatMap used expressions
         _ ->
             []
 
