@@ -1,4 +1,4 @@
-module NoMinimalRecordAccess exposing (rule)
+module NoMinimalRecordAccess exposing (rule, Config)
 
 {-| Forbids the use of a record, when only a few components from the record is used
 
@@ -37,27 +37,37 @@ import Review.Rule as Rule exposing (Error, Rule)
         ...
 
 -}
-rule : Int -> Rule
-rule threshold =
+type alias Config =
+    { threshold : Int
+    , ignoreFunctions : List String
+    }
+
+
+rule : Config -> Rule
+rule config =
     Rule.newModuleRuleSchema "NoMinimalRecordAccess" ()
-        |> Rule.withSimpleDeclarationVisitor (declarationVisitor threshold)
+        |> Rule.withSimpleDeclarationVisitor (declarationVisitor config)
         |> Rule.fromModuleRuleSchema
 
 
-declarationVisitor : Int -> Node Declaration -> List (Error {})
-declarationVisitor threshold node =
+declarationVisitor : Config -> Node Declaration -> List (Error {})
+declarationVisitor config node =
     case Node.value node of
         Declaration.FunctionDeclaration { declaration } ->
-            errorsForDeclaration threshold (Node.value declaration)
+            errorsForDeclaration config (Node.value declaration)
 
         _ ->
             []
 
 
-errorsForDeclaration : Int -> FunctionImplementation -> List (Error {})
-errorsForDeclaration threshold { arguments, expression } =
-    errorsForArguments threshold arguments
-        ++ errorsForExpession threshold expression
+errorsForDeclaration : Config -> FunctionImplementation -> List (Error {})
+errorsForDeclaration config { arguments, expression, name } =
+    if List.member (Node.value name) config.ignoreFunctions then
+        []
+
+    else
+        errorsForArguments config.threshold arguments
+            ++ errorsForExpession config.threshold expression
 
 
 errorsForExpession : Int -> Node Expression -> List (Error {})

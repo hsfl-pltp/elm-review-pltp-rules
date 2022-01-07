@@ -5,19 +5,26 @@ import Review.Test exposing (ExpectedError)
 import Test exposing (Test, describe, test)
 
 
+ruleConfig : NoMinimalRecordAccess.Config
+ruleConfig =
+    { threshold = 2
+    , ignoreFunctions = []
+    }
+
+
 all : Test
 all =
     describe "NoMinimalRecordDestructing"
         [ test "should report an error when a minimal record destructing is used" <|
             \() ->
                 destructingSource
-                    |> Review.Test.run (rule 3)
+                    |> Review.Test.run (rule ruleConfig)
                     |> Review.Test.expectErrors
-                        [ destructingError 3 ]
+                        [ destructingError 2 ]
         , test "should report an error when to less components used from a record by access" <|
             \() ->
                 accessSource
-                    |> Review.Test.run (rule 2)
+                    |> Review.Test.run (rule ruleConfig)
                     |> Review.Test.expectErrors
                         [ accessError 2 ]
         ]

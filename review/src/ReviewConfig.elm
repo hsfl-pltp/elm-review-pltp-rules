@@ -12,12 +12,12 @@ import NoDebug.TodoOrToString
 import NoExposingEverything
 import NoForbiddenFeatures
 import NoIfCascade
-import NoNegations
 import NoImportingEverything
 import NoInvalidImport
 import NoMinimalRecordAccess
 import NoMinimalUnderscorePattern
 import NoMissingTypeAnnotation
+import NoNegations
 import NoSinglePatternCase
 import NoUnnecessaryIf
 import NoUnused.CustomTypeConstructors
@@ -32,27 +32,32 @@ import UseCamelCase
 import UseCommutingConversions
 import UseConstantsForStyle
 import UseEtaReductions
-import UseNamingConventions
 import UseLogicalOperators
+import UseNamingConventions
 
 
 config : List Rule
-config = 
+config =
     [ NoBooleanComparison.rule
     , NoDebug.Log.rule
     , NoDebug.TodoOrToString.rule
     , NoExposingEverything.rule
     , NoForbiddenFeatures.rule
-        { operators = [ "|>" ]
-        , functions = [ "List.map", "Html.Attributes.class", "Maybe.withDefault" ]
-        , letIn = True
-        , algebraicDataTypes = True
-        , lambda = True
+        { operators = []
+        , functions = []
+
+        -- , functions = [ "List.map", "Html.Attributes.class", "Maybe.withDefault" ]
+        , letIn = False
+        , algebraicDataTypes = False
+        , lambda = False
         }
     , NoIfCascade.rule
     , NoNegations.rule
     , NoImportingEverything.rule []
-    , NoMinimalRecordAccess.rule 2
+    , NoMinimalRecordAccess.rule
+        { threshold = 2
+        , ignoreFunctions = [ "subscriptions" ]
+        }
     , NoMinimalUnderscorePattern.rule 4
     , NoMissingTypeAnnotation.rule
     , NoSinglePatternCase.rule
@@ -74,7 +79,7 @@ config =
     , UseCommutingConversions.rule
     , UseConstantsForStyle.rule
     , UseCamelCase.rule UseCamelCase.default
-    -- , UseEtaReductions.rule
+    , UseEtaReductions.rule
     , UseNamingConventions.rule
     , UseLogicalOperators.rule
     ]
