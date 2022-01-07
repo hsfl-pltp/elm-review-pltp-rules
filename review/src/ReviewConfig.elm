@@ -12,7 +12,7 @@ import NoDebug.TodoOrToString
 import NoExposingEverything
 import NoForbiddenFeatures
 import NoIfCascade
-import NoIfNegations
+import NoNegations
 import NoImportingEverything
 import NoInvalidImport
 import NoMinimalRecordAccess
@@ -37,20 +37,20 @@ import UseLogicalOperators
 
 
 config : List Rule
-config =
+config = 
     [ NoBooleanComparison.rule
     , NoDebug.Log.rule
     , NoDebug.TodoOrToString.rule
     , NoExposingEverything.rule
     , NoForbiddenFeatures.rule
         { operators = [ "|>" ]
-        , functions = [ "List.map", "Html.Attributes.class" ]
+        , functions = [ "List.map", "Html.Attributes.class", "Maybe.withDefault" ]
         , letIn = True
         , algebraicDataTypes = True
         , lambda = True
         }
     , NoIfCascade.rule
-    , NoIfNegations.rule
+    , NoNegations.rule
     , NoImportingEverything.rule []
     , NoMinimalRecordAccess.rule 2
     , NoMinimalUnderscorePattern.rule 4
@@ -74,7 +74,7 @@ config =
     , UseCommutingConversions.rule
     , UseConstantsForStyle.rule
     , UseCamelCase.rule UseCamelCase.default
-    , UseEtaReductions.rule
+    -- , UseEtaReductions.rule
     , UseNamingConventions.rule
     , UseLogicalOperators.rule
     ]
