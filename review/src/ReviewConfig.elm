@@ -44,9 +44,7 @@ config =
     , NoExposingEverything.rule
     , NoForbiddenFeatures.rule
         { operators = []
-        , functions = []
-
-        -- , functions = [ "List.map", "Html.Attributes.class", "Maybe.withDefault" ]
+        , functions = [ "List.map", "Html.Attributes.class", "Maybe.withDefault", "Decode.andThen" ]
         , letIn = False
         , algebraicDataTypes = False
         , lambda = False
@@ -65,7 +63,7 @@ config =
     , NoInvalidImport.rule
         [ "Html"
         , "Html.Attributes"
-        , "Html.Events"
+        , "Browser.Events"
         , "Svg"
         , "Svg.Attributes"
         ]
