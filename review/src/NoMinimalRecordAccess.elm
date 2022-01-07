@@ -123,8 +123,8 @@ destructingError threshold node =
     Rule.error
         { message = "To few components used from record destructing"
         , details =
-            [ "If you destruct less then " ++ String.fromInt threshold ++ " components from a record, then you sould give the components as parameters to you function"
-            , "For example, the record {name: String, age: Int}. The components name and age should be given as single arguements to your function"
+            [ "If you destruct " ++ String.fromInt threshold ++ "or less components from a record, then you sould give the components as parameters to you function"
+            , "For example, the record {name: String, age: Int}. The components name and age should be given as arguments to the function."
             ]
         }
         (Node.range node)
@@ -134,6 +134,6 @@ accessError : Int -> Node Expression -> Error {}
 accessError threshold node =
     Rule.error
         { message = "To few compoents used in record access"
-        , details = [ "If you use less then " ++ String.fromInt threshold ++ " components from record, via record access, you should move give the components as arguments to the function" ]
+        , details = [ "If you use " ++ String.fromInt threshold ++ " or less components from a record, you should move the components as arguments to the function" ]
         }
         (Node.range node)

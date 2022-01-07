@@ -62,7 +62,7 @@ nameError (Node range value) =
     Rule.error
         { message = "This is not a good function name: " ++ value
         , details =
-            [ "The name get, comes from imperative programming, a more expressive name would be without the get"
+            [ "The name get, comes from imperative programming, a more expressive name would be without get"
             ]
         }
         range

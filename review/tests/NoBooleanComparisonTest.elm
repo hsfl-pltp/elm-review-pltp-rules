@@ -3,6 +3,7 @@ module NoBooleanComparisonTest exposing (all)
 import NoBooleanComparison exposing (rule)
 import Review.Test exposing (ExpectedError)
 import Test exposing (Test, describe, test)
+import TestHelper
 
 
 all : Test
@@ -23,12 +24,11 @@ all =
 
 testRule : String -> Test
 testRule expr =
-    test ("Should report an error when a expression like " ++ expr ++ " is found.")
-        (\_ ->
-            source expr
-                |> Review.Test.run rule
-                |> Review.Test.expectErrors [ assertError expr ]
-        )
+    TestHelper.testRule
+        ("Should report an error when a expression like " ++ expr ++ " is found.")
+        (source expr)
+        (assertError expr)
+        rule
 
 
 source : String -> String
