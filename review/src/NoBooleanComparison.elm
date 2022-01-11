@@ -10,6 +10,7 @@ import Elm.Syntax.Expression as Expression exposing (Expression)
 import Elm.Syntax.Node as Node exposing (Node)
 import Helper
 import Review.Rule as Rule exposing (Error, Rule)
+import Review.ModuleNameLookupTable exposing (ModuleNameLookupTable)
 
 
 {-| Reports the comparison with booleans
@@ -40,33 +41,40 @@ import Review.Rule as Rule exposing (Error, Rule)
         ...
 
 -}
+initialContext : Rule.ContextCreator () ModuleNameLookupTable
+initialContext =
+    Rule.initContextCreator
+        (\lookupTable () -> lookupTable)
+        |> Rule.withModuleNameLookupTable
+
+
 rule : Rule
 rule =
-    Rule.newModuleRuleSchema "NoBooleanComparison" ()
-        |> Rule.withSimpleExpressionVisitor expressionVisitor
+    Rule.newModuleRuleSchemaUsingContextCreator "NoBooleanComparison" initialContext
+        |> Rule.withExpressionEnterVisitor expressionVisitor
         |> Rule.fromModuleRuleSchema
 
 
-expressionVisitor : Node Expression -> List (Error {})
-expressionVisitor node =
+expressionVisitor : Node Expression -> ModuleNameLookupTable-> (List (Error {}), ModuleNameLookupTable)
+expressionVisitor node lookupTable =
     case Node.value node of
         Expression.OperatorApplication "==" _ left right ->
-            errorsForOperator node (Node.value left) (Node.value right)
+            (errorsForOperator node left right lookupTable, lookupTable)
 
         Expression.OperatorApplication "/=" _ left right ->
-            errorsForOperator node (Node.value left) (Node.value right)
+            (errorsForOperator node left right lookupTable, lookupTable)
 
         _ ->
-            []
+            ([], lookupTable)
 
 
-errorsForOperator : Node Expression -> Expression -> Expression -> List (Error {})
-errorsForOperator node left right =
-    if Helper.isBoolExpression left && not (Helper.isBoolExpression right) then
-        [ ruleError node ]
+errorsForOperator : Node Expression -> Node Expression -> Node Expression -> ModuleNameLookupTable -> List (Error {})
+errorsForOperator parent left right lookupTable =
+    if Helper.isBoolExpression left lookupTable && not (Helper.isBoolExpression right lookupTable) then
+        [ ruleError parent ]
 
-    else if not (Helper.isBoolExpression left) && Helper.isBoolExpression right then
-        [ ruleError node ]
+    else if not (Helper.isBoolExpression left lookupTable) && Helper.isBoolExpression right lookupTable then
+        [ ruleError parent ]
 
     else
         []

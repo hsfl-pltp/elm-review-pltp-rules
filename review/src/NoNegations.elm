@@ -9,6 +9,7 @@ module NoNegations exposing (rule)
 import Elm.Syntax.Expression as Expression exposing (Expression(..))
 import Elm.Syntax.Infix exposing (InfixDirection(..))
 import Elm.Syntax.Node as Node exposing (Node(..))
+import Review.ModuleNameLookupTable as ModuleNameLookupTable exposing (ModuleNameLookupTable)
 import Review.Rule as Rule exposing (Error, Rule)
 
 
@@ -57,31 +58,56 @@ import Review.Rule as Rule exposing (Error, Rule)
     a > b
 
 -}
+initialContext : Rule.ContextCreator () ModuleNameLookupTable
+initialContext =
+    Rule.initContextCreator
+        (\lookupTable () -> lookupTable)
+        |> Rule.withModuleNameLookupTable
+
+
 rule : Rule
 rule =
-    Rule.newModuleRuleSchema "NoNegations" ()
-        |> Rule.withSimpleExpressionVisitor expressionVisitor
+    Rule.newModuleRuleSchemaUsingContextCreator "NoNegations" initialContext
+        |> Rule.withExpressionEnterVisitor expressionVisitor
         |> Rule.fromModuleRuleSchema
 
 
-expressionVisitor : Node Expression -> List (Error {})
-expressionVisitor node =
+expressionVisitor : Node Expression -> ModuleNameLookupTable -> ( List (Error {}), ModuleNameLookupTable )
+expressionVisitor node lookupTable =
     case Node.value node of
         Expression.Application nodes ->
-            errorsForApplication node (List.map Node.value nodes)
+            ( errorsForApplication node lookupTable nodes, lookupTable )
 
         _ ->
-            []
+            ( [], lookupTable )
 
 
-errorsForApplication : Node Expression -> List Expression -> List (Error {})
-errorsForApplication parent list =
+errorsForApplication : Node Expression -> ModuleNameLookupTable -> List (Node Expression) -> List (Error {})
+errorsForApplication parent lookupTable list =
     case list of
-        (Expression.FunctionOrValue [] "not") :: expr :: _ ->
-            errorsForNot parent expr
+        x :: expression :: xs ->
+            if isNot x lookupTable then
+                errorsForNot parent (Node.value expression)
 
+            else
+                errorsForApplication parent lookupTable xs
         _ ->
             []
+
+
+isNot : Node Expression -> ModuleNameLookupTable -> Bool
+isNot node lookupTable =
+    case Node.value node of
+        Expression.FunctionOrValue _ "not" ->
+            case ModuleNameLookupTable.moduleNameFor lookupTable node of
+                Just [ "Basics" ] ->
+                    True
+
+                _ ->
+                    False
+
+        _ ->
+            False
 
 
 errorsForNot : Node Expression -> Expression -> List (Error {})

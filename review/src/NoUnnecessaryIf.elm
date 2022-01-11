@@ -8,6 +8,8 @@ module NoUnnecessaryIf exposing (rule)
 
 import Elm.Syntax.Expression as Expression exposing (Expression)
 import Elm.Syntax.Node as Node exposing (Node)
+import Helper
+import Review.ModuleNameLookupTable exposing (ModuleNameLookupTable)
 import Review.Rule as Rule exposing (Error, Rule)
 
 
@@ -48,28 +50,39 @@ import Review.Rule as Rule exposing (Error, Rule)
         not bar
 
 -}
+initialContext : Rule.ContextCreator () ModuleNameLookupTable
+initialContext =
+    Rule.initContextCreator
+        (\lookupTable () -> lookupTable)
+        |> Rule.withModuleNameLookupTable
+
+
 rule : Rule
 rule =
-    Rule.newModuleRuleSchema "UnnecessaryIf" ()
-        |> Rule.withSimpleExpressionVisitor expressionVisitor
+    Rule.newModuleRuleSchemaUsingContextCreator "UnnecessaryIf" initialContext
+        |> Rule.withExpressionEnterVisitor expressionVisitor
         |> Rule.fromModuleRuleSchema
 
 
-expressionVisitor : Node Expression -> List (Error {})
-expressionVisitor node =
+expressionVisitor : Node Expression -> ModuleNameLookupTable -> ( List (Error {}), ModuleNameLookupTable )
+expressionVisitor node lookupTable =
     case Node.value node of
         Expression.IfBlock _ left right ->
-            errorsForIf node left right ++ errorsForIf node right left
+            ( errorsForIf node left right lookupTable ++ errorsForIf node right left lookupTable, lookupTable )
 
         _ ->
-            []
+            ( [], lookupTable )
 
 
-errorsForIf : Node Expression -> Node Expression -> Node Expression -> List (Error {})
-errorsForIf parent left right =
+errorsForIf : Node Expression -> Node Expression -> Node Expression -> ModuleNameLookupTable -> List (Error {})
+errorsForIf parent left right lookupTable =
     case ( Node.value left, Node.value right ) of
-        ( Expression.FunctionOrValue [] "True", Expression.FunctionOrValue [] "False" ) ->
-            [ ifError parent ]
+        ( Expression.FunctionOrValue _ "True", Expression.FunctionOrValue _ "False" ) ->
+            if Helper.isBoolExpression left lookupTable && Helper.isBoolExpression right lookupTable then
+                [ ifError parent ]
+
+            else
+                []
 
         _ ->
             []

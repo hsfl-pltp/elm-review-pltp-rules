@@ -2,7 +2,7 @@ module Helper exposing (functionName, isBoolExpression, toModuleName)
 
 import Elm.Syntax.Expression as Expression exposing (Expression)
 import Elm.Syntax.ModuleName exposing (ModuleName)
-import Elm.Syntax.Node exposing (Node(..))
+import Elm.Syntax.Node as Node exposing (Node(..))
 import Review.ModuleNameLookupTable as ModuleNameLookupTable exposing (ModuleNameLookupTable)
 
 
@@ -21,11 +21,16 @@ toModuleName =
     String.join "."
 
 
-isBoolExpression : Expression -> Bool
-isBoolExpression expr =
-    case expr of
-        Expression.FunctionOrValue [] value ->
-            value == "True" || value == "False"
+isBoolExpression : Node Expression -> ModuleNameLookupTable -> Bool
+isBoolExpression node lookupTable =
+    case Node.value node of
+        Expression.FunctionOrValue _ value ->
+            case ModuleNameLookupTable.moduleNameFor lookupTable node of
+                Just [ "Basics" ] ->
+                    value == "True" || value == "False"
+
+                _ ->
+                    False
 
         _ ->
             False
