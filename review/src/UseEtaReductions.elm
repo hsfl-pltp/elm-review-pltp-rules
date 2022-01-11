@@ -78,6 +78,20 @@ errorsFunctionImplementation (Node _ { expression, arguments }) =
             []
 
 
+errorsForApplication : Node Expression -> Maybe (Node Expression) -> Maybe (Node Pattern) -> List (Error {})
+errorsForApplication node expression pattern =
+    case ( expression, pattern ) of
+        ( Just exp, Just pat ) ->
+            if equal exp pat then
+                [ applicationError node ]
+
+            else
+                []
+
+        _ ->
+            []
+
+
 errorsForLambda : Node Expression -> Expression.Lambda -> List (Error {})
 errorsForLambda node { expression, args } =
     case List.Extra.last args of
@@ -85,50 +99,26 @@ errorsForLambda node { expression, args } =
             []
 
         Just arg ->
-            if isEqualPattern expression arg then
+            if equal expression arg then
                 [ lambdaError node ]
 
             else
                 []
 
 
-errorsForApplication : Node Expression -> Maybe (Node Expression) -> Maybe (Node Pattern) -> List (Error {})
-errorsForApplication node expression argument =
-    case expression of
-        Nothing ->
-            []
+equal : Node Expression -> Node Pattern -> Bool
+equal expression pattern =
+    case ( Node.value pattern, Node.value expression ) of
+        ( Pattern.VarPattern var, Expression.FunctionOrValue [] val ) ->
+            var == val
 
-        Just e ->
-            case argument of
+        ( _, Expression.Application expressions ) ->
+            case List.Extra.last expressions of
                 Nothing ->
-                    []
-
-                Just pattern ->
-                    if isEqualPattern e pattern then
-                        [ applicationError node ]
-
-                    else
-                        []
-
-
-isEqualPattern : Node Expression -> Node Pattern -> Bool
-isEqualPattern expression pattern =
-    case Node.value pattern of
-        Pattern.VarPattern var ->
-            case Node.value expression of
-                Expression.FunctionOrValue [] val ->
-                    var == val
-
-                Expression.Application expressions ->
-                    case List.Extra.last expressions of
-                        Nothing ->
-                            False
-
-                        Just expr ->
-                            isEqualPattern expr pattern
-
-                _ ->
                     False
+
+                Just expr ->
+                    equal expr pattern
 
         _ ->
             False

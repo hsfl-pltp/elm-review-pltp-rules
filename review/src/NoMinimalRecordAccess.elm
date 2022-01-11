@@ -1,4 +1,7 @@
-module NoMinimalRecordAccess exposing (rule, Config)
+module NoMinimalRecordAccess exposing
+    ( rule
+    , Config
+    )
 
 {-| Forbids the use of a record, when only a few components from the record is used
 
@@ -89,11 +92,8 @@ used node =
 accessed : Node Expression -> List String
 accessed node =
     case Node.value node of
-        Expression.RecordAccess _ (Node _ name) ->
-            [ name ]
-
-        Expression.RecordAccessFunction name ->
-            [ name ]
+        Expression.RecordAccess expr (Node _ name) ->
+            [ toRecordString (Node.value expr) name ]
 
         Expression.Application expressions ->
             List.concatMap used expressions
@@ -109,19 +109,30 @@ accessed node =
 
         Expression.ListExpr expressions ->
             List.concatMap used expressions
+
         _ ->
             []
+
+
+toRecordString : Expression -> String -> String
+toRecordString expression name =
+    case expression of
+        Expression.FunctionOrValue [] record ->
+            record ++ "." ++ name
+
+        _ ->
+            name
 
 
 errorsForArguments : Int -> List (Node Pattern) -> List (Error {})
 errorsForArguments threshold patterns =
     patterns
-        |> List.filter (validRecordPattern threshold)
+        |> List.filter (invalidPattern threshold)
         |> List.map (destructingError threshold)
 
 
-validRecordPattern : Int -> Node Pattern -> Bool
-validRecordPattern threshold node =
+invalidPattern : Int -> Node Pattern -> Bool
+invalidPattern threshold node =
     case Node.value node of
         Pattern.RecordPattern components ->
             List.length components <= threshold

@@ -11,7 +11,6 @@ import NoDebug.Log
 import NoDebug.TodoOrToString
 import NoExposingEverything
 import NoForbiddenFeatures
-import NoIfCascade
 import NoImportingEverything
 import NoInvalidImport
 import NoMinimalRecordAccess
@@ -44,12 +43,16 @@ config =
     , NoExposingEverything.rule
     , NoForbiddenFeatures.rule
         { operators = []
-        , functions = [ "List.map", "Html.Attributes.class", "Maybe.withDefault", "Decode.andThen" ]
+        , functions =
+            [ "List.map"
+            , "Html.Attributes.class"
+            , "Maybe.withDefault"
+            , "Decode.andThen"
+            ]
         , letIn = False
         , algebraicDataTypes = False
         , lambda = False
         }
-    , NoIfCascade.rule
     , NoNegations.rule
     , NoImportingEverything.rule []
     , NoMinimalRecordAccess.rule
@@ -63,7 +66,7 @@ config =
     , NoInvalidImport.rule
         [ "Html"
         , "Html.Attributes"
-        , "Browser.Events"
+        , "Html.Events"
         , "Svg"
         , "Svg.Attributes"
         ]

@@ -10,6 +10,8 @@ all : Test
 all =
     describe "NoIfNegations"
         [ testRule "not (a == b)" "a /= b"
+        , testRule "not (a || b )" "not a && not b"
+        , testRule "not (a && b)" "not a || not b"
         , testRule "not (a /= b)" "a == b"
         , testRule "not (a > b)" "a <= b"
         , testRule "not (a >= b)" "a < b"

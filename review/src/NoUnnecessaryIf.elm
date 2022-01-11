@@ -67,21 +67,12 @@ expressionVisitor node =
 
 errorsForIf : Node Expression -> Node Expression -> Node Expression -> List (Error {})
 errorsForIf parent left right =
-    if matchExpression left "True" && matchExpression right "False" then
-        [ ifError parent ]
-
-    else
-        []
-
-
-matchExpression : Node Expression -> String -> Bool
-matchExpression node expected =
-    case Node.value node of
-        Expression.FunctionOrValue [] value ->
-            value == expected
+    case ( Node.value left, Node.value right ) of
+        ( Expression.FunctionOrValue [] "True", Expression.FunctionOrValue [] "False" ) ->
+            [ ifError parent ]
 
         _ ->
-            False
+            []
 
 
 ifError : Node Expression -> Error {}

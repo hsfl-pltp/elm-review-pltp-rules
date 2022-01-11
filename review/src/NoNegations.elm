@@ -1,6 +1,6 @@
 module NoNegations exposing (rule)
 
-{-| Forbids the use of negations in if
+{-| Forbids the use of not ()
 
 @docs rule
 
@@ -12,7 +12,7 @@ import Elm.Syntax.Node as Node exposing (Node(..))
 import Review.Rule as Rule exposing (Error, Rule)
 
 
-{-| Reports when the use of negations in if expressions are detected
+{-| Reports when the use of not
 
     config =
         [ NoIfNegations.rule
@@ -20,6 +20,10 @@ import Review.Rule as Rule exposing (Error, Rule)
 
 
 ## Fail
+
+    not (a && b)
+
+    not (a || b)
 
     not (a == b)
 
@@ -35,6 +39,10 @@ import Review.Rule as Rule exposing (Error, Rule)
 
 
 ## Success
+
+    not a || not b
+
+    not a && not b
 
     a /= b
 
@@ -69,38 +77,61 @@ expressionVisitor node =
 errorsForApplication : Node Expression -> List Expression -> List (Error {})
 errorsForApplication parent list =
     case list of
-        [] ->
-            []
-
-        (Expression.FunctionOrValue [] "not") :: xs ->
-            errorsForNot parent xs
-
-        _ :: xs ->
-            errorsForApplication parent xs
-
-
-errorsForNot : Node Expression -> List Expression -> List (Error {})
-errorsForNot parent list =
-    case list of
-        (Expression.OperatorApplication operator _ left right) :: [] ->
-            [ notError parent (transformOperatorApplication operator left right)
-            ]
-
-        (Expression.ParenthesizedExpression (Node _ expr)) :: xs ->
-            errorsForNot parent (expr :: xs)
+        (Expression.FunctionOrValue [] "not") :: expr :: _ ->
+            errorsForNot parent expr
 
         _ ->
             []
+
+
+errorsForNot : Node Expression -> Expression -> List (Error {})
+errorsForNot parent expression =
+    case expression of
+        Expression.ParenthesizedExpression (Node _ expr) ->
+            errorsForOperator parent expr
+
+        _ ->
+            []
+
+
+errorsForOperator : Node Expression -> Expression -> List (Error {})
+errorsForOperator parent expr =
+    case expr of
+        Expression.OperatorApplication operator _ left right ->
+            [ notError parent (String.join " " (negateOperator operator left right)) ]
+
+        _ ->
+            []
+
+
+negateOperator : String -> Node Expression -> Node Expression -> List String
+negateOperator operator left right =
+    if operator == "||" || operator == "&&" then
+        case ( Node.value left, Node.value right ) of
+            ( Expression.FunctionOrValue [] leftName, Expression.FunctionOrValue [] rightName ) ->
+                [ "not", leftName, transformOperator operator, "not", rightName ]
+
+            ( Expression.FunctionOrValue [] leftName, _ ) ->
+                [ "not", leftName, transformOperator operator, transform right ]
+
+            ( _, Expression.FunctionOrValue [] rightName ) ->
+                [ transform left, transformOperator operator, "not", rightName ]
+
+            _ ->
+                [ transform left, transformOperator operator, transform right ]
+
+    else
+        [ transform left, transformOperator operator, transform right ]
 
 
 transform : Node Expression -> String
 transform expression =
     case Node.value expression of
         Expression.OperatorApplication operator _ left right ->
-            transformOperatorApplication operator left right
+            String.join " " (negateOperator operator left right)
 
         Expression.ParenthesizedExpression expr ->
-            " ( " ++ transform expr ++ " ) "
+            "(" ++ transform expr ++ ")"
 
         Expression.RecordAccess expr (Node _ name) ->
             transform expr ++ "." ++ name
@@ -119,11 +150,6 @@ transform expression =
 
         _ ->
             ""
-
-
-transformOperatorApplication : String -> Node Expression -> Node Expression -> String
-transformOperatorApplication operator left right =
-    String.join " " [ transform left, transformOperator operator, transform right ]
 
 
 transformOperator : String -> String

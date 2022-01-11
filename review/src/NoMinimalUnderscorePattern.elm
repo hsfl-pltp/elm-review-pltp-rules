@@ -121,24 +121,19 @@ expressionEnterVisitor : Node Expression -> ModuleContext -> ( List (Error {}), 
 expressionEnterVisitor node context =
     case Node.value node of
         Expression.CaseExpression { cases } ->
-            ( errorsForCases node (List.map Tuple.first cases) context, context )
+            ( errorsForPatterns node (List.map Tuple.first cases) context, context )
 
         _ ->
             ( [], context )
 
 
-errorsForCases : Node Expression -> List (Node Pattern) -> ModuleContext -> List (Error {})
-errorsForCases node patterns context =
-    if List.any isAllPattern patterns && allValidPattern context.lookupTable patterns then
+errorsForPatterns : Node Expression -> List (Node Pattern) -> ModuleContext -> List (Error {})
+errorsForPatterns node patterns context =
+    if List.any isAllPattern patterns && List.all (validPattern context.lookupTable) patterns then
         errorsForPattern node patterns context
 
     else
         []
-
-
-allValidPattern : ModuleNameLookupTable -> List (Node Pattern) -> Bool
-allValidPattern lookupTable patterns =
-    List.all (validPattern lookupTable) patterns
 
 
 isAllPattern : Node Pattern -> Bool

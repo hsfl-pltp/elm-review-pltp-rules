@@ -47,7 +47,7 @@ accessError threshold =
     Review.Test.error
         { message = "To few compoents used in record access"
         , details = [ "If you use " ++ String.fromInt threshold ++ " or less components from a record, you should move the components as arguments to the function" ]
-        , under = "\"The name: \" ++ .name person ++ \", age is \" ++ String.fromInt person.age"
+        , under = "\"The name: \" ++ person.name ++ \", age is \" ++ String.fromInt person.age"
         }
 
 
@@ -75,5 +75,5 @@ type alias Person =
 
 viewName : Person -> String
 viewName person =
-    "The name: " ++ .name person ++ ", age is " ++ String.fromInt person.age
+    "The name: " ++ person.name ++ ", age is " ++ String.fromInt person.age
     """

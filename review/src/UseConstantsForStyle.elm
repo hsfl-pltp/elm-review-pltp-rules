@@ -195,6 +195,17 @@ errorsForHtmlElement node attributes context =
         []
 
 
+isHtmlElement : Node Expression -> ModuleNameLookupTable -> Bool
+isHtmlElement node lookupTable =
+    case Node.value node of
+        Expression.FunctionOrValue _ func ->
+            isFromHtmlModule (ModuleNameLookupTable.moduleNameFor lookupTable node)
+                && List.member func htmlElements
+
+        _ ->
+            False
+
+
 errorsForAttributes : Node Expression -> Context -> List (Error {})
 errorsForAttributes node context =
     case Node.value node of
@@ -207,17 +218,6 @@ errorsForAttributes node context =
 
         _ ->
             []
-
-
-isHtmlElement : Node Expression -> ModuleNameLookupTable -> Bool
-isHtmlElement node lookupTable =
-    case Node.value node of
-        Expression.FunctionOrValue _ func ->
-            isFromHtmlModule (ModuleNameLookupTable.moduleNameFor lookupTable node)
-                && List.member func htmlElements
-
-        _ ->
-            False
 
 
 isStyleAttribute : ModuleNameLookupTable -> Node Expression -> Bool
