@@ -17,7 +17,7 @@ import NoImportingEverything
 import NoMinimalRecordAccess
 import NoMinimalUnderscorePattern
 import NoMissingTypeAnnotation
-import NoNegations
+import NoNegationOfBooleanCombinations
 import NoSinglePatternCase
 import NoUnnecessaryIf
 import NoUnused.CustomTypeConstructors
@@ -32,6 +32,7 @@ import UseCamelCase
 import UseCommutingConversions
 import UseConstantsForStyle
 import UseEtaReductions
+import UseInvertedOperators
 import UseLogicalOperators
 import UseNamingConventions
 
@@ -62,7 +63,6 @@ config =
         , algebraicDataTypes = False
         , lambda = False
         }
-    , NoNegations.rule
     , NoImportingEverything.rule []
     , NoMinimalRecordAccess.rule
         { threshold = 2
@@ -70,6 +70,7 @@ config =
         }
     , NoMinimalUnderscorePattern.rule 4
     , NoMissingTypeAnnotation.rule
+    , NoNegationOfBooleanCombinations.rule
     , NoSinglePatternCase.rule
     , NoUnnecessaryIf.rule
     , NoUnused.CustomTypeConstructors.rule []
@@ -83,6 +84,7 @@ config =
     , UseConstantsForStyle.rule
     , UseCamelCase.rule UseCamelCase.default
     , UseEtaReductions.rule
+    , UseInvertedOperators.rule
     , UseNamingConventions.rule
     , UseLogicalOperators.rule
     ]
