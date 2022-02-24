@@ -17,7 +17,7 @@ import NoImportingEverything
 import NoMinimalRecordAccess
 import NoMinimalUnderscorePattern
 import NoMissingTypeAnnotation
-import NoNegationOfBooleanCombinations
+import NoNegationOfBooleanOperator
 import NoSinglePatternCase
 import NoUnnecessaryIf
 import NoUnused.CustomTypeConstructors
@@ -70,7 +70,7 @@ config =
         }
     , NoMinimalUnderscorePattern.rule 4
     , NoMissingTypeAnnotation.rule
-    , NoNegationOfBooleanCombinations.rule
+    , NoNegationOfBooleanOperator.rule
     , NoSinglePatternCase.rule
     , NoUnnecessaryIf.rule
     , NoUnused.CustomTypeConstructors.rule []
